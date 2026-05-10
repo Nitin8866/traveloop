@@ -115,7 +115,7 @@ const ManageUsersTab = () => {
                                         <td><span className="admin-badge blue">{u.city || '—'}, {u.country || '—'}</span></td>
                                         <td><strong>{u.trip_count}</strong></td>
                                         <td>{u.activity_count}</td>
-                                        <td style={{ fontWeight: 700, color: '#059669' }}>${parseFloat(u.total_spent).toLocaleString()}</td>
+                                        <td style={{ fontWeight: 700, color: '#059669' }}>₹{parseFloat(u.total_spent).toLocaleString()}</td>
                                         <td style={{ fontSize: '0.8rem', color: '#9CA3AF' }}>{new Date(u.created_at).toLocaleDateString()}</td>
                                         <td style={{ textAlign: 'right' }}>
                                             <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
@@ -186,7 +186,7 @@ const UserDetailPanel = ({ detail }) => {
                 {[
                     { icon: <MapPin size={16} />, label: 'Trips', value: summary.totalTrips, color: '#0077B6' },
                     { icon: <Activity size={16} />, label: 'Activities', value: summary.totalActivities, color: '#8B5CF6' },
-                    { icon: <DollarSign size={16} />, label: 'Total Spent', value: `$${summary.totalExpense.toLocaleString()}`, color: '#10B981' },
+                    { icon: <DollarSign size={16} />, label: 'Total Spent', value: `₹${summary.totalExpense.toLocaleString()}`, color: '#10B981' },
                     { icon: <MapPin size={16} />, label: 'Cities Visited', value: summary.totalStops, color: '#F59E0B' },
                 ].map((s, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'white', borderRadius: 12, border: '1px solid #F3F4F6' }}>
@@ -206,7 +206,7 @@ const UserDetailPanel = ({ detail }) => {
                         <div style={{ display: 'flex', gap: 8 }}>
                             <span className="admin-badge green">{trip.stopCount} stops</span>
                             <span className="admin-badge purple">{trip.activityCount} activities</span>
-                            <span className="admin-badge orange">${trip.totalExpense.toLocaleString()}</span>
+                            <span className="admin-badge orange">₹{trip.totalExpense.toLocaleString()}</span>
                         </div>
                     </div>
                     {trip.stops.length > 0 && (

@@ -40,7 +40,7 @@ const TrendsTab = () => {
             <div className="admin-grid-4" style={{ marginBottom: '2rem' }}>
                 {[
                     { label: 'Avg Trip Duration', value: `${trends?.durationStats?.avgDuration || 0} days`, icon: <Clock size={20} />, color: '#0077B6', bg: '#EFF6FF' },
-                    { label: 'Total Platform Spend', value: `$${(expenses?.overallStats?.totalSpending || 0).toLocaleString()}`, icon: <DollarSign size={20} />, color: '#10B981', bg: '#ECFDF5' },
+                    { label: 'Total Platform Spend', value: `₹${(expenses?.overallStats?.totalSpending || 0).toLocaleString()}`, icon: <DollarSign size={20} />, color: '#10B981', bg: '#ECFDF5' },
                     { label: 'Trips with Expenses', value: expenses?.overallStats?.tripsWithExpenses || 0, icon: <BarChart3 size={20} />, color: '#F59E0B', bg: '#FFFBEB' },
                     { label: 'Expense Entries', value: expenses?.overallStats?.totalEntries || 0, icon: <TrendingUp size={20} />, color: '#8B5CF6', bg: '#F5F3FF' },
                 ].map((s, i) => (
@@ -107,7 +107,7 @@ const TrendsTab = () => {
                                 }).join(', ')})`, flexShrink: 0
                             }}>
                                 <div className="admin-donut-center">
-                                    <div className="admin-donut-center-value">${(expenses.overallStats?.totalSpending || 0).toLocaleString()}</div>
+                                    <div className="admin-donut-center-value">₹{(expenses.overallStats?.totalSpending || 0).toLocaleString()}</div>
                                     <div className="admin-donut-center-label">Total</div>
                                 </div>
                             </div>
@@ -116,7 +116,7 @@ const TrendsTab = () => {
                                     <div key={i} className="admin-legend-item">
                                         <div className="admin-legend-dot" style={{ background: COLORS[i % 8] }} />
                                         <span>{c.category}</span>
-                                        <span className="admin-legend-value">${c.total.toLocaleString()}</span>
+                                        <span className="admin-legend-value">₹{c.total.toLocaleString()}</span>
                                     </div>
                                 ))}
                             </div>
@@ -133,7 +133,7 @@ const TrendsTab = () => {
                             {expenses.monthlyTrend.map((m, i) => (
                                 <div key={i} className="admin-bar" style={{ height: `${(m.total / maxExpTrend) * 100}%`, minHeight: '8px',
                                     background: `linear-gradient(180deg, #F59E0B, #F59E0B99)` }}>
-                                    <span className="admin-bar-value">${m.total}</span>
+                                    <span className="admin-bar-value">₹{m.total}</span>
                                     <span className="admin-bar-label">{m.label?.split(' ')[0]}</span>
                                 </div>
                             ))}
@@ -161,7 +161,7 @@ const TrendsTab = () => {
                                     <div style={{ fontSize: '0.72rem', color: '#9CA3AF' }}>{s.trip_count} trips</div>
                                 </div>
                                 <div style={{ fontWeight: 900, color: '#059669', fontSize: '1rem' }}>
-                                    ${s.total_spent.toLocaleString()}
+                                    ₹{s.total_spent.toLocaleString()}
                                 </div>
                             </div>
                         ))}
@@ -195,8 +195,8 @@ const TrendsTab = () => {
                                     <div className="admin-legend-dot" style={{ background: COLORS[i % 8], width: 10, height: 10 }} />
                                     <span style={{ flex: 1, fontWeight: 600, fontSize: '0.88rem' }}>{c.category}</span>
                                     <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>{c.entries} entries</span>
-                                    <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>avg ${c.average}</span>
-                                    <span style={{ fontWeight: 800, color: '#111', fontSize: '0.9rem' }}>${c.total.toLocaleString()}</span>
+                                    <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>avg ₹{c.average}</span>
+                                    <span style={{ fontWeight: 800, color: '#111', fontSize: '0.9rem' }}>₹{c.total.toLocaleString()}</span>
                                 </div>
                             ))}
                         </div>
@@ -219,7 +219,7 @@ const TrendsTab = () => {
                                     <td>{t.trip_name}</td>
                                     <td style={{ color: '#6B7280' }}>{t.first_name} {t.last_name}</td>
                                     <td>{t.expense_count} entries</td>
-                                    <td style={{ fontWeight: 800, color: '#059669' }}>${t.total_expense.toLocaleString()}</td>
+                                    <td style={{ fontWeight: 800, color: '#059669' }}>₹{t.total_expense.toLocaleString()}</td>
                                 </tr>
                             ))}
                         </tbody>

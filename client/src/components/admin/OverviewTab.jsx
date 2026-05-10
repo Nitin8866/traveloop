@@ -33,7 +33,7 @@ const OverviewTab = () => {
         { label: 'Total Users', value: stats?.totalUsers || 0, icon: <Users size={22} />, color: '#0077B6', bg: '#EFF6FF', change: stats?.recentSignups || 0, changeLabel: 'new this month' },
         { label: 'Total Trips', value: stats?.totalTrips || 0, icon: <Map size={22} />, color: '#10B981', bg: '#ECFDF5', change: stats?.recentTrips || 0, changeLabel: 'new this month' },
         { label: 'Activities', value: stats?.totalActivities || 0, icon: <TrendingUp size={22} />, color: '#8B5CF6', bg: '#F5F3FF', change: `${stats?.avgTripsPerUser || 0} avg/user`, changeLabel: 'trips per user' },
-        { label: 'Total Revenue', value: `$${(stats?.totalExpenses || 0).toLocaleString()}`, icon: <DollarSign size={22} />, color: '#F59E0B', bg: '#FFFBEB', change: `$${stats?.avgExpensePerTrip || 0} avg`, changeLabel: 'per trip' },
+        { label: 'Total Revenue', value: `₹${(stats?.totalExpenses || 0).toLocaleString()}`, icon: <DollarSign size={22} />, color: '#F59E0B', bg: '#FFFBEB', change: `₹${stats?.avgExpensePerTrip || 0} avg`, changeLabel: 'per trip' },
     ];
 
     const maxTrend = Math.max(...(trends?.tripCreationTrend?.map(t => t.count) || [1]), 1);
@@ -110,7 +110,7 @@ const OverviewTab = () => {
                                     <div key={i} className="admin-legend-item">
                                         <div className="admin-legend-dot" style={{ background: CHART_COLORS[i % 8] }} />
                                         <span>{c.category}</span>
-                                        <span className="admin-legend-value">${c.total_amount?.toLocaleString()}</span>
+                                        <span className="admin-legend-value">₹{c.total_amount?.toLocaleString()}</span>
                                     </div>
                                 ))}
                             </div>

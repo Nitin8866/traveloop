@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../components/layout/Layout';
 import { MapPin, Calendar, Compass, ArrowRight, Sparkles, Loader2, ArrowLeft, ChevronDown } from 'lucide-react';
 
 const CreateTrip = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
     const [destinationSearch, setDestinationSearch] = useState('');
     const [destinationResults, setDestinationResults] = useState([]);
@@ -26,6 +27,7 @@ const CreateTrip = () => {
 
     useEffect(() => {
         const fetchTrips = async () => {
+<<<<<<< HEAD
             try {
                 const token = localStorage.getItem('token');
                 const res = await axios.get('/api/trips', { headers: { Authorization: `Bearer ${token}` } });
@@ -41,10 +43,27 @@ const CreateTrip = () => {
                 }
             } catch (err) {
                 console.error("Failed to fetch trips", err);
+=======
+            const token = localStorage.getItem('token');
+            const res = await axios.get('/api/trips', { headers: { Authorization: `Bearer ${token}` } });
+            setMyTrips(res.data);
+            
+            const queryParams = new URLSearchParams(location.search);
+            const prefilledTripId = queryParams.get('tripId');
+            if (prefilledTripId) {
+                const selected = res.data.find(t => t.id === parseInt(prefilledTripId));
+                if (selected) {
+                    setFormData(prev => ({...prev, id: selected.id, name: selected.name, startDate: selected.start_date?.split('T')[0], endDate: selected.end_date?.split('T')[0], destinationPlace: ''}));
+                    setDestinationSearch('');
+                    setIsExistingTrip(true);
+                }
+>>>>>>> 637b1e3 (fixes in admin)
             }
         };
         fetchTrips();
-        if (formData.destinationPlace) setDestinationSearch(formData.destinationPlace);
+        if (formData.destinationPlace && !new URLSearchParams(location.search).get('tripId')) {
+            setDestinationSearch(formData.destinationPlace);
+        }
     }, []);
 
     useEffect(() => {

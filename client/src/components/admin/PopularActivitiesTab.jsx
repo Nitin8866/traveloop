@@ -38,8 +38,8 @@ const PopularActivitiesTab = () => {
                 {[
                     { label: 'Total Activities', value: data.totalActivities, icon: <Activity size={20} />, color: '#0077B6', bg: '#EFF6FF' },
                     { label: 'Activity Types', value: data.typeDistribution?.length || 0, icon: <Zap size={20} />, color: '#8B5CF6', bg: '#F5F3FF' },
-                    { label: 'Avg Cost', value: `$${data.costStats?.avgCost || 0}`, icon: <DollarSign size={20} />, color: '#10B981', bg: '#ECFDF5' },
-                    { label: 'Total Spent', value: `$${(data.costStats?.totalCost || 0).toLocaleString()}`, icon: <DollarSign size={20} />, color: '#F59E0B', bg: '#FFFBEB' },
+                    { label: 'Avg Cost', value: `₹${data.costStats?.avgCost || 0}`, icon: <DollarSign size={20} />, color: '#10B981', bg: '#ECFDF5' },
+                    { label: 'Total Spent', value: `₹${(data.costStats?.totalCost || 0).toLocaleString()}`, icon: <DollarSign size={20} />, color: '#F59E0B', bg: '#FFFBEB' },
                 ].map((s, i) => (
                     <div key={i} className="admin-stat-card">
                         <div className="admin-stat-icon" style={{ background: s.bg, color: s.color }}>{s.icon}</div>
@@ -118,7 +118,7 @@ const PopularActivitiesTab = () => {
                             <h4 style={{ marginBottom: '0.8rem', fontWeight: 800 }}>{t.type}</h4>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                                 <div><div style={{ fontSize: '0.65rem', color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase' }}>Count</div><div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{t.count}</div></div>
-                                <div><div style={{ fontSize: '0.65rem', color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase' }}>Avg Cost</div><div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#059669' }}>${t.avg_cost}</div></div>
+                                <div><div style={{ fontSize: '0.65rem', color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase' }}>Avg Cost</div><div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#059669' }}>₹{t.avg_cost}</div></div>
                             </div>
                             {/* Mini bar indicator */}
                             <div style={{ marginTop: '1rem', height: 6, background: '#E5E7EB', borderRadius: 10, overflow: 'hidden' }}>
@@ -144,7 +144,7 @@ const PopularActivitiesTab = () => {
                                     <td>{a.name}</td>
                                     <td><span className="admin-badge blue">{TYPE_ICONS[a.type] || '📌'} {a.type || 'Other'}</span></td>
                                     <td><strong>{a.frequency}</strong></td>
-                                    <td style={{ color: '#059669', fontWeight: 700 }}>${a.avg_cost}</td>
+                                    <td style={{ color: '#059669', fontWeight: 700 }}>₹{a.avg_cost}</td>
                                 </tr>
                             ))}
                         </tbody>

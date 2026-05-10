@@ -42,22 +42,25 @@ const ItineraryView = () => {
                             <ArrowLeft size={24} />
                         </button>
                         <div>
-                            <h1 style={{ fontSize: '2.5rem', fontWeight: 950, letterSpacing: '-2px' }}>{trip.name} Master Plan</h1>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{trip.description}</p>
+                            <h1 style={{ fontSize: '2rem', fontWeight: 900, letterSpacing: '-1px' }}>{trip.name} Master Plan</h1>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                <MapPin size={16} color="var(--primary)" />
+                                <span style={{ fontWeight: 600 }}>{trip.destination_place}</span>
+                            </div>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button onClick={() => navigate(`/packing/${tripId}`)} style={{ padding: '10px 20px', borderRadius: '15px', background: '#F1F5F9', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <ShieldCheck size={18} /> Packing
+                    <div style={{ display: 'flex', gap: '0.8rem' }}>
+                        <button onClick={() => navigate(`/packing/${tripId}`)} style={{ padding: '8px 16px', borderRadius: '12px', background: '#F1F5F9', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <ShieldCheck size={16} /> Packing
                         </button>
-                        <button onClick={() => navigate(`/notes/${tripId}`)} style={{ padding: '10px 20px', borderRadius: '15px', background: '#F1F5F9', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <MessageSquare size={18} /> Notes
+                        <button onClick={() => navigate(`/notes/${tripId}`)} style={{ padding: '8px 16px', borderRadius: '12px', background: '#F1F5F9', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <MessageSquare size={16} /> Notes
                         </button>
-                        <button onClick={() => navigate(`/invoice/${tripId}`)} style={{ padding: '10px 20px', borderRadius: '15px', background: '#F1F5F9', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FileText size={18} /> Invoice
+                        <button onClick={() => navigate(`/invoice/${tripId}`)} style={{ padding: '8px 16px', borderRadius: '12px', background: '#F1F5F9', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <FileText size={16} /> Invoice
                         </button>
-                        <button onClick={() => navigate(`/share/${tripId}`)} style={{ padding: '10px 20px', borderRadius: '15px', background: '#000', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Share2 size={18} /> Share
+                        <button onClick={() => navigate(`/share/${tripId}`)} style={{ padding: '8px 16px', borderRadius: '12px', background: '#000', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Share2 size={16} /> Share
                         </button>
                     </div>
                 </div>
@@ -82,61 +85,100 @@ const ItineraryView = () => {
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-                    {stops.length > 0 ? stops.map((stop, i) => (
-                        <div key={stop.id} className="premium-card animate-fade-in" style={{ padding: '3.5rem', background: 'white', border: '1px solid #E2E8F0', borderRadius: '32px' }}>
-                            <div style={{ marginBottom: '2.5rem' }}>
-                                <h2 style={{ fontSize: '1.6rem', fontWeight: 950, marginBottom: '1.5rem' }}>Section {i + 1}: <span style={{ color: 'var(--primary)' }}>{stop.city_name}</span></h2>
-                                <p style={{ color: '#475569', lineHeight: 1.8, fontSize: '1.05rem', fontWeight: 500 }}>
-                                    All the necessary information about this section. This can be anything like travel section, hotel or any other activity in <strong>{stop.city_name}</strong>.
-                                </p>
-                            </div>
+                <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '3rem', paddingLeft: '1.5rem' }}>
+                    {/* Continuous Vertical Timeline Line */}
+                    {stops.length > 0 && (
+                        <div style={{ position: 'absolute', top: '2rem', bottom: '2rem', left: '2rem', width: '4px', background: 'linear-gradient(to bottom, #3B82F6, #10B981, #EC4899)', borderRadius: '10px', zIndex: 0, opacity: 0.3 }}></div>
+                    )}
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                                <div style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '1.5rem 2rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                    <Calendar size={20} color="#64748B" />
-                                    <p style={{ fontWeight: 800, color: '#1E293B' }}>
-                                        Date Range: {stop.arrival_date ? new Date(stop.arrival_date).toLocaleDateString() : 'TBD'} to {stop.departure_date ? new Date(stop.departure_date).toLocaleDateString() : 'TBD'}
-                                    </p>
+                    {stops.length > 0 ? stops.map((stop, i) => (
+                        <div key={stop.id} style={{ position: 'relative', display: 'flex', gap: '2.5rem', zIndex: 1, alignItems: 'stretch' }}>
+                            {/* Glowing Timeline Dot */}
+                            <div style={{ 
+                                minWidth: '40px', height: '40px', borderRadius: '50%', 
+                                background: 'linear-gradient(135deg, #0F172A, #1E293B)', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                                color: 'white', fontWeight: 800, fontSize: '0.95rem',
+                                boxShadow: '0 0 0 6px white, 0 8px 20px -5px rgba(0,0,0,0.1)',
+                                transform: 'translateX(-22px)',
+                                alignSelf: 'flex-start',
+                                marginTop: '1.2rem',
+                                border: '2px solid #E2E8F0'
+                            }}>
+                                {i + 1}
+                            </div>
+                            
+                            {/* Place Timeline Card */}
+                            <div className="premium-card animate-fade-in" style={{ flex: 1, padding: '1.5rem 2rem', background: 'white', border: '1px solid #E2E8F0', borderRadius: '24px', transition: 'all 0.3s ease' }}
+                                 onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 30px -10px rgba(0,0,0,0.08)'; }}
+                                 onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(0,0,0,0.05)'; }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                                    <div>
+                                        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.3px' }}>Stop {i + 1}: {stop.city_name}</h2>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', marginTop: '4px' }}>
+                                            <MapPin size={12} />
+                                            <span style={{ fontWeight: 700, fontSize: '0.8rem' }}>
+                                                {(stop.country && stop.country.toLowerCase() !== 'india') ? stop.country : trip.destination_place}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style={{ background: '#F8FAFC', padding: '8px 14px', borderRadius: '50px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <MapPin size={14} color="#64748B" />
+                                        <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#475569' }}>Destination</span>
+                                    </div>
                                 </div>
-                                <div style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '1.5rem 2rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                    <IndianRupee size={20} color="#059669" />
-                                    <p style={{ fontWeight: 800, color: '#1E293B' }}>
-                                        Budget of this section: ₹{(parseFloat(stop.budget) || 5000).toLocaleString()}
-                                    </p>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <Calendar size={18} color="#64748B" />
+                                        <div>
+                                            <p style={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 800, marginBottom: '2px' }}>DATES</p>
+                                            <p style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.85rem' }}>
+                                                {stop.arrival_date ? new Date(stop.arrival_date).toLocaleDateString() : 'TBD'} - {stop.departure_date ? new Date(stop.departure_date).toLocaleDateString() : 'TBD'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div style={{ background: '#ECFDF5', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <IndianRupee size={18} color="#059669" />
+                                        <div>
+                                            <p style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 800, marginBottom: '2px' }}>EST. BUDGET</p>
+                                            <p style={{ fontWeight: 800, color: '#059669', fontSize: '0.95rem' }}>
+                                                ₹{(parseFloat(stop.budget) || 5000).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )) : (
-                        <div style={{ padding: '6rem', textAlign: 'center', background: '#F8FAFC', borderRadius: '32px', border: '2px dashed #CBD5E1' }}>
-                            <Info size={48} color="#94A3B8" style={{ marginBottom: '1.5rem' }} />
-                            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#64748B' }}>No sections added yet</h3>
-                            <p style={{ color: '#94A3B8', marginTop: '0.5rem' }}>Click below to explore and add destinations to this trip.</p>
+                        <div style={{ padding: '6rem', textAlign: 'center', background: '#F8FAFC', borderRadius: '32px', border: '2px dashed #CBD5E1', marginLeft: '1.5rem' }}>
+                            <Info size={48} color="#94A3B8" style={{ marginBottom: '1.5rem', margin: '0 auto' }} />
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#64748B' }}>Your timeline is empty</h3>
+                            <p style={{ color: '#94A3B8', marginTop: '0.5rem' }}>Click below to explore and add places to your journey timeline.</p>
                         </div>
                     )}
 
-                    {/* Add Another Section Button */}
-                    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                    {/* Add Another Place Button (Bottom of Timeline) */}
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '2rem', zIndex: 1, marginTop: '0.5rem' }}>
+                        <div style={{ 
+                            minWidth: '40px', height: '40px', borderRadius: '50%', 
+                            background: '#F1F5F9', border: '2px dashed #CBD5E1',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                            color: '#94A3B8', transform: 'translateX(-22px)'
+                        }}>
+                            <Plus size={16} />
+                        </div>
                         <button 
-                            onClick={() => navigate(`/itinerary/${tripId}`)}
+                            onClick={() => navigate('/create-trip?tripId=' + tripId)}
                             style={{ 
-                                padding: '1.8rem 4rem', 
-                                background: 'white', 
-                                border: '2.5px solid #000', 
-                                borderRadius: '24px', 
-                                fontSize: '1.3rem', 
-                                fontWeight: 950, 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
-                                gap: '15px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 10px 20px rgba(0,0,0,0.05)'
+                                flex: 1, padding: '1.2rem', background: '#F8FAFC', border: '2px dashed #CBD5E1', borderRadius: '20px', 
+                                fontSize: '1rem', fontWeight: 700, color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', transition: 'all 0.2s ease'
                             }}
-                            onMouseOver={(e) => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#000'; }}
+                            onMouseOver={(e) => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.borderColor = '#94A3B8'; e.currentTarget.style.color = '#475569'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#64748B'; }}
                         >
-                            <Plus size={32} /> Add another Section
+                            <Plus size={20} /> Append New Destination
                         </button>
                     </div>
                 </div>

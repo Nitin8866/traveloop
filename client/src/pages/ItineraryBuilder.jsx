@@ -83,7 +83,7 @@ const ItineraryBuilder = () => {
             for (const item of cart) {
                 await axios.post('/api/itinerary/stops', { 
                     cityName: item.name, 
-                    country: 'India', 
+                    country: item.address, 
                     arrivalDate: sDate, 
                     departureDate: eDate,
                     tripId, 
@@ -155,7 +155,7 @@ const ItineraryBuilder = () => {
                         </div>
 
                         <div style={{ display: 'flex', gap: '2rem' }}>
-                            <button className="btn-primary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate('/create-trip')}>
+                            <button className="btn-primary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate('/create-trip?tripId=' + tripId)}>
                                 <Plus size={24} /> Add Another City Trip
                             </button>
                             <button className="btn-secondary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate(`/itinerary-view/${tripId}`)}>
@@ -169,8 +169,8 @@ const ItineraryBuilder = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
                                 <button onClick={() => navigate('/create-trip')} className="btn-icon" style={{ width: '60px', height: '60px', borderRadius: '18px', background: '#F1F5F9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowLeft size={28} /></button>
                                 <div>
-                                    <h1 style={{ fontSize: '3.5rem', fontWeight: 950, letterSpacing: '-3px' }}>Explore {targetCity || trip.destination_place.split(',')[0]}</h1>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Building itinerary for your selected city.</p>
+                                    <h1 style={{ fontSize: '2.2rem', fontWeight: 900, letterSpacing: '-1.5px' }}>Explore {targetCity || trip.destination_place.split(',')[0]}</h1>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>Select the places you'd like to visit in this city.</p>
                                 </div>
                             </div>
                         </div>
@@ -185,20 +185,20 @@ const ItineraryBuilder = () => {
                                             <div 
                                                 key={i} 
                                                 className="premium-card animate-fade-in" 
-                                                style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '2.5rem', cursor: 'pointer', border: cart.find(item => item.name === place.name) ? '2.5px solid var(--primary)' : '1px solid #F1F5F9' }}
+                                                style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1.5rem', cursor: 'pointer', border: cart.find(item => item.name === place.name) ? '2px solid var(--primary)' : '1px solid #F1F5F9' }}
                                                 onClick={() => toggleSelection(place)}
                                             >
                                                 <div style={{ color: cart.find(item => item.name === place.name) ? 'var(--primary)' : '#CBD5E1' }}>
-                                                    {cart.find(item => item.name === place.name) ? <CheckSquare size={36} /> : <Square size={36} />}
+                                                    {cart.find(item => item.name === place.name) ? <CheckCircle2 size={28} /> : <div style={{ width: '28px', height: '28px', borderRadius: '50%', border: '2px solid #E2E8F0' }}></div>}
                                                 </div>
-                                                <div style={{ width: '140px', height: '140px', borderRadius: '24px', overflow: 'hidden' }}>
+                                                <div style={{ width: '100px', height: '100px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0 }}>
                                                     <img src={place.photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={place.name} onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1548013146-72479768b0dd?auto=format&fit=crop&q=80&w=400' }} />
                                                 </div>
                                                 <div style={{ flex: 1 }}>
-                                                    <h4 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '8px' }}>{place.name}</h4>
-                                                    <p style={{ color: '#64748B', fontWeight: 600 }}>{place.address}</p>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', color: '#F59E0B', fontWeight: 900 }}>
-                                                        <Star size={18} fill="#F59E0B" /> {place.rating || '4.5'}
+                                                    <h4 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '4px' }}>{place.name}</h4>
+                                                    <p style={{ color: '#64748B', fontWeight: 500, fontSize: '0.85rem' }}>{place.address}</p>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', color: '#F59E0B', fontWeight: 800, fontSize: '0.9rem' }}>
+                                                        <Star size={16} fill="#F59E0B" /> {place.rating || '4.5'}
                                                     </div>
                                                 </div>
                                             </div>
@@ -223,18 +223,18 @@ const ItineraryBuilder = () => {
                         </div>
 
                         {/* STICKY BOTTOM BAR */}
-                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: '1100px', background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(20px)', padding: '2rem 4rem', borderRadius: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000 }}>
+                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: '1000px', background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(20px)', padding: '1.2rem 2.5rem', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, boxShadow: '0 20px 50px -10px rgba(0,0,0,0.3)' }}>
                             <div style={{ color: 'white' }}>
-                                <p style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.7 }}>BUILDING ITINERARY</p>
-                                <h4 style={{ fontSize: '1.4rem', fontWeight: 900 }}>{cart.length} Places Selected</h4>
+                                <p style={{ fontSize: '0.75rem', fontWeight: 800, opacity: 0.7, letterSpacing: '1px' }}>BUILDING ITINERARY</p>
+                                <h4 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{cart.length} Places Selected</h4>
                             </div>
                             <button 
                                 className="btn-primary" 
-                                style={{ padding: '1.2rem 3rem', fontSize: '1.1rem', borderRadius: '18px' }}
+                                style={{ padding: '0.8rem 2rem', fontSize: '1rem', borderRadius: '14px' }}
                                 disabled={cart.length === 0 || isFinalizing}
                                 onClick={finalizeRoute}
                             >
-                                {isFinalizing ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={22} /> Confirm & Add to Journey</>}
+                                {isFinalizing ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={20} /> Add to Journey</>}
                             </button>
                         </div>
                     </>
