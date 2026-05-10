@@ -1,175 +1,171 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Layout from '../components/layout/Layout';
-import { Calendar, MapPin, Search, Plus, ArrowRight, Sparkles, Navigation, Loader2 } from 'lucide-react';
+import { MapPin, Calendar, Compass, ArrowRight, Sparkles, Loader2, ArrowLeft } from 'lucide-react';
 
 const CreateTrip = () => {
-    const [formData, setFormData] = useState({ 
-        name: '', 
-        description: '', 
-        startDate: '', 
-        endDate: '', 
-        sourcePlace: '', 
-        destinationPlace: '' 
-    });
-    const [suggestions, setSuggestions] = useState({ source: [], destination: [] });
-    const [loading, setLoading] = useState({ source: false, destination: false });
-    const [activeDropdown, setActiveDropdown] = useState(null);
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [destinationSearch, setDestinationSearch] = useState('');
+    const [destinationResults, setDestinationResults] = useState([]);
     
-    const sourceRef = useRef(null);
-    const destRef = useRef(null);
+    // Load initial state from LocalStorage or use defaults
+    const [formData, setFormData] = useState(() => {
+        const saved = localStorage.getItem('traveloop_draft_trip');
+        return saved ? JSON.parse(saved) : {
+            name: '',
+            description: '',
+            startDate: '',
+            endDate: '',
+            destinationPlace: ''
+        };
+    });
 
-    const fetchPlaces = async (query, type) => {
-        if (query.length < 3) {
-            setSuggestions(prev => ({ ...prev, [type]: [] }));
-            return;
+    // Initialize search field from saved data
+    useEffect(() => {
+        if (formData.destinationPlace && !destinationSearch) {
+            setDestinationSearch(formData.destinationPlace);
         }
-        setLoading(prev => ({ ...prev, [type]: true }));
-        try {
-            const res = await axios.get(`https://photon.komoot.io/api/?q=${query}&limit=5`);
-            const places = res.data.features.map(f => {
-                const p = f.properties;
-                return `${p.name || ''}${p.state ? ', ' + p.state : ''}${p.country ? ', ' + p.country : ''}`;
-            });
-            setSuggestions(prev => ({ ...prev, [type]: [...new Set(places)] }));
-        } catch (err) { console.error("API Error:", err); }
-        setLoading(prev => ({ ...prev, [type]: false }));
-    };
+    }, []);
 
-    const handleSelect = (place, type) => {
-        if (type === 'source') {
-            setFormData(prev => ({ ...prev, sourcePlace: place }));
-        } else {
-            setFormData(prev => ({ ...prev, destinationPlace: place }));
-        }
-        setSuggestions({ source: [], destination: [] });
-        setActiveDropdown(null);
-    };
+    // Sync form data to LocalStorage on every change
+    useEffect(() => {
+        localStorage.setItem('traveloop_draft_trip', JSON.stringify(formData));
+    }, [formData]);
+
+    // Photon API for Global Search
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (destinationSearch.length > 2) {
+                const res = await axios.get(`https://photon.komoot.io/api/?q=${destinationSearch}&limit=5`);
+                setDestinationResults(res.data.features);
+            } else {
+                setDestinationResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [destinationSearch]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.destinationPlace) {
+            alert('Please select a destination from the dropdown.');
+            return;
+        }
+        setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post('/api/trips', {
-                ...formData,
-                coverPhoto: `https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&q=80&w=1400`
-            }, { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.post('/api/trips', formData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             navigate(`/itinerary/${res.data.id}`);
-        } catch (err) { alert('Error creating trip'); }
+        } catch (error) {
+            console.error('Error creating trip:', error);
+            alert('Failed to create trip.');
+        }
+        setLoading(false);
     };
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (sourceRef.current && !sourceRef.current.contains(event.target) && 
-                destRef.current && !destRef.current.contains(event.target)) {
-                setActiveDropdown(null);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     return (
         <Layout>
-            <div className="animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                <div style={{ marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Plan a new trip</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Map out your route with precision global destination search.</p>
+            <div className="animate-fade-in" style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '4rem' }}>
+                    <button onClick={() => navigate('/dashboard')} style={{ width: '50px', height: '50px', borderRadius: '15px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+                        <ArrowLeft size={24} />
+                    </button>
+                    <div>
+                        <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-2px', marginBottom: '0.5rem' }}>Plan your Destination</h1>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Your data is automatically saved as you type.</p>
+                    </div>
                 </div>
 
-                <div className="premium-card" style={{ padding: '3.5rem', marginBottom: '4rem', overflow: 'visible' }}>
-                    <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                        <div style={{ gridColumn: 'span 2' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>Journey Name</label>
-                            <input type="text" placeholder="e.g. My Grand World Tour" style={{ width: '100%' }} onChange={e => setFormData({...formData, name: e.target.value})} required />
-                        </div>
-                        
-                        <div style={{ position: 'relative' }} ref={sourceRef}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>Source Place</label>
+                <form onSubmit={handleSubmit} className="premium-card" style={{ padding: '4rem', background: 'white', borderRadius: '40px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2.5rem' }}>
+                        {/* Journey Name */}
+                        <div className="form-group">
+                            <label style={{ fontWeight: 800, marginBottom: '12px', display: 'block', fontSize: '0.9rem' }}>Journey Name</label>
                             <div style={{ position: 'relative' }}>
-                                <Navigation size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
+                                <Compass size={20} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
                                 <input 
                                     type="text" 
-                                    value={formData.sourcePlace}
-                                    placeholder="Start City, State, Country" 
-                                    style={{ width: '100%', paddingLeft: '48px' }} 
-                                    onFocus={() => setActiveDropdown('source')}
-                                    onChange={e => {
-                                        setFormData({...formData, sourcePlace: e.target.value});
-                                        fetchPlaces(e.target.value, 'source');
-                                        setActiveDropdown('source');
-                                    }} 
-                                    required 
+                                    value={formData.name}
+                                    placeholder="e.g. Summer Break 2026" 
+                                    style={{ width: '100%', padding: '1.2rem 1.2rem 1.2rem 3.5rem', borderRadius: '18px', border: '2px solid #F1F5F9', fontSize: '1rem', fontWeight: 600 }}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    required
                                 />
-                                {loading.source && <Loader2 size={16} className="animate-spin" style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />}
                             </div>
-                            {activeDropdown === 'source' && suggestions.source.length > 0 && (
-                                <div className="premium-card" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, marginTop: '8px', padding: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-                                    {suggestions.source.map((p, i) => (
-                                        <div key={i} onMouseDown={() => handleSelect(p, 'source')} style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }} className="suggestion-item">
-                                            <MapPin size={14} style={{ marginRight: '8px', display: 'inline' }} /> {p}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
                         </div>
 
-                        <div style={{ position: 'relative' }} ref={destRef}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>Destination Place</label>
+                        {/* Destination Selection */}
+                        <div className="form-group">
+                            <label style={{ fontWeight: 800, marginBottom: '12px', display: 'block', fontSize: '0.9rem' }}>Destination Place</label>
                             <div style={{ position: 'relative' }}>
-                                <MapPin size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary)' }} />
+                                <MapPin size={20} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: '#EC4899' }} />
                                 <input 
                                     type="text" 
-                                    value={formData.destinationPlace}
-                                    placeholder="Destination City, State, Country" 
-                                    style={{ width: '100%', paddingLeft: '48px' }} 
-                                    onFocus={() => setActiveDropdown('destination')}
-                                    onChange={e => {
+                                    value={destinationSearch}
+                                    placeholder="Where do you want to go?" 
+                                    style={{ width: '100%', padding: '1.2rem 1.2rem 1.2rem 3.5rem', borderRadius: '18px', border: '2px solid #F1F5F9', fontSize: '1rem', fontWeight: 600 }}
+                                    onChange={(e) => {
+                                        setDestinationSearch(e.target.value);
                                         setFormData({...formData, destinationPlace: e.target.value});
-                                        fetchPlaces(e.target.value, 'destination');
-                                        setActiveDropdown('destination');
-                                    }} 
-                                    required 
+                                    }}
+                                    required
                                 />
-                                {loading.destination && <Loader2 size={16} className="animate-spin" style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />}
+                                {destinationResults.length > 0 && (
+                                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 100, borderRadius: '18px', marginTop: '8px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', border: '1px solid #F1F5F9', overflow: 'hidden' }}>
+                                        {destinationResults.map((r, i) => (
+                                            <div key={i} style={{ padding: '15px 25px', cursor: 'pointer', borderBottom: '1px solid #F8FAFC', fontWeight: 600 }} onClick={() => {
+                                                const name = `${r.properties.name || ''}, ${r.properties.city || ''}, ${r.properties.country || ''}`;
+                                                setFormData({...formData, destinationPlace: name});
+                                                setDestinationSearch(name);
+                                                setDestinationResults([]);
+                                            }}>
+                                                <MapPin size={14} style={{ marginRight: '10px', color: '#EC4899' }} /> {r.properties.name}, {r.properties.city}, {r.properties.country}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            {activeDropdown === 'destination' && suggestions.destination.length > 0 && (
-                                <div className="premium-card" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, marginTop: '8px', padding: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-                                    {suggestions.destination.map((p, i) => (
-                                        <div key={i} onMouseDown={() => handleSelect(p, 'destination')} style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }} className="suggestion-item">
-                                            <MapPin size={14} style={{ marginRight: '8px', display: 'inline' }} /> {p}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
                         </div>
 
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>Start Date</label>
-                            <input type="date" style={{ width: '100%' }} onChange={e => setFormData({...formData, startDate: e.target.value})} required />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>End Date</label>
-                            <input type="date" style={{ width: '100%' }} onChange={e => setFormData({...formData, endDate: e.target.value})} required />
+                        {/* Date Range */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                            <div className="form-group">
+                                <label style={{ fontWeight: 800, marginBottom: '12px', display: 'block', fontSize: '0.9rem' }}>Start Date</label>
+                                <input 
+                                    type="date" 
+                                    value={formData.startDate}
+                                    style={{ width: '100%', padding: '1.2rem', borderRadius: '18px', border: '2px solid #F1F5F9', fontSize: '1rem', fontWeight: 600 }}
+                                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                                    required
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontWeight: 800, marginBottom: '12px', display: 'block', fontSize: '0.9rem' }}>End Date</label>
+                                <input 
+                                    type="date" 
+                                    value={formData.endDate}
+                                    style={{ width: '100%', padding: '1.2rem', borderRadius: '18px', border: '2px solid #F1F5F9', fontSize: '1rem', fontWeight: 600 }}
+                                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                                    required
+                                />
+                            </div>
                         </div>
 
-                        <button type="submit" className="btn-primary" style={{ gridColumn: 'span 2', padding: '1.2rem', marginTop: '1rem', fontSize: '1.1rem' }}>
-                            Generate Intelligent Route <Plus size={20} />
+                        <button 
+                            type="submit" 
+                            className="btn-primary" 
+                            style={{ padding: '1.5rem', borderRadius: '22px', fontSize: '1.2rem', marginTop: '1rem' }}
+                            disabled={loading}
+                        >
+                            {loading ? <Loader2 className="animate-spin" /> : <><Sparkles size={24} /> Continue Selection</>}
                         </button>
-                    </form>
-                </div>
-
-                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem', border: '2px dashed #eee', borderRadius: '32px' }}>
-                    <Sparkles size={32} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-                    <p>Search results are powered by global open-source mapping data.</p>
-                </div>
+                    </div>
+                </form>
             </div>
-            
-            <style>{`
-                .suggestion-item:hover { background: #F3F4F6 !important; color: var(--primary); }
-            `}</style>
         </Layout>
     );
 };
