@@ -71,7 +71,7 @@ const CreateTrip = () => {
         <Layout>
             <div className="animate-fade-in" style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '4rem' }}>
-                    <button onClick={() => navigate('/dashboard')} className="btn-icon" style={{ width: '50px', height: '50px', borderRadius: '15px', background: '#F1F5F9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button onClick={() => navigate('/')} className="btn-icon" style={{ width: '50px', height: '50px', borderRadius: '15px', background: '#F1F5F9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <ArrowLeft size={24} />
                     </button>
                     <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-2px' }}>Plan Next Destination</h1>
