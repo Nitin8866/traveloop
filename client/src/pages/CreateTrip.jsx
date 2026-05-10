@@ -15,11 +15,12 @@ const CreateTrip = () => {
     });
     const [suggestions, setSuggestions] = useState({ source: [], destination: [] });
     const [loading, setLoading] = useState({ source: false, destination: false });
-    const [activeDropdown, setActiveDropdown] = useState(null); // 'source' or 'destination'
+    const [activeDropdown, setActiveDropdown] = useState(null);
     const navigate = useNavigate();
-    const dropdownRef = useRef(null);
+    
+    const sourceRef = useRef(null);
+    const destRef = useRef(null);
 
-    // Fetch places from Photon (OpenStreetMap) API
     const fetchPlaces = async (query, type) => {
         if (query.length < 3) {
             setSuggestions(prev => ({ ...prev, [type]: [] }));
@@ -30,16 +31,20 @@ const CreateTrip = () => {
             const res = await axios.get(`https://photon.komoot.io/api/?q=${query}&limit=5`);
             const places = res.data.features.map(f => {
                 const p = f.properties;
-                return `${p.name ? p.name : ''}${p.state ? ', ' + p.state : ''}${p.country ? ', ' + p.country : ''}`;
+                return `${p.name || ''}${p.state ? ', ' + p.state : ''}${p.country ? ', ' + p.country : ''}`;
             });
-            setSuggestions(prev => ({ ...prev, [type]: [...new Set(places)] })); // Unique results
+            setSuggestions(prev => ({ ...prev, [type]: [...new Set(places)] }));
         } catch (err) { console.error("API Error:", err); }
         setLoading(prev => ({ ...prev, [type]: false }));
     };
 
     const handleSelect = (place, type) => {
-        setFormData({ ...formData, [type === 'source' ? 'sourcePlace' : 'destinationPlace']: place });
-        setSuggestions(prev => ({ ...prev, [type]: [] }));
+        if (type === 'source') {
+            setFormData(prev => ({ ...prev, sourcePlace: place }));
+        } else {
+            setFormData(prev => ({ ...prev, destinationPlace: place }));
+        }
+        setSuggestions({ source: [], destination: [] });
         setActiveDropdown(null);
     };
 
@@ -55,10 +60,10 @@ const CreateTrip = () => {
         } catch (err) { alert('Error creating trip'); }
     };
 
-    // Close dropdown on click outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (sourceRef.current && !sourceRef.current.contains(event.target) && 
+                destRef.current && !destRef.current.contains(event.target)) {
                 setActiveDropdown(null);
             }
         };
@@ -71,7 +76,7 @@ const CreateTrip = () => {
             <div className="animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
                 <div style={{ marginBottom: '3rem' }}>
                     <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Plan a new trip</h1>
-                    <p style={{ color: 'var(--text-muted)' }}>Map out your route with real-world global destination search.</p>
+                    <p style={{ color: 'var(--text-muted)' }}>Map out your route with precision global destination search.</p>
                 </div>
 
                 <div className="premium-card" style={{ padding: '3.5rem', marginBottom: '4rem', overflow: 'visible' }}>
@@ -81,8 +86,7 @@ const CreateTrip = () => {
                             <input type="text" placeholder="e.g. My Grand World Tour" style={{ width: '100%' }} onChange={e => setFormData({...formData, name: e.target.value})} required />
                         </div>
                         
-                        {/* Source Place Search */}
-                        <div style={{ position: 'relative' }} ref={dropdownRef}>
+                        <div style={{ position: 'relative' }} ref={sourceRef}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>Source Place</label>
                             <div style={{ position: 'relative' }}>
                                 <Navigation size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
@@ -91,6 +95,7 @@ const CreateTrip = () => {
                                     value={formData.sourcePlace}
                                     placeholder="Start City, State, Country" 
                                     style={{ width: '100%', paddingLeft: '48px' }} 
+                                    onFocus={() => setActiveDropdown('source')}
                                     onChange={e => {
                                         setFormData({...formData, sourcePlace: e.target.value});
                                         fetchPlaces(e.target.value, 'source');
@@ -103,7 +108,7 @@ const CreateTrip = () => {
                             {activeDropdown === 'source' && suggestions.source.length > 0 && (
                                 <div className="premium-card" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, marginTop: '8px', padding: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
                                     {suggestions.source.map((p, i) => (
-                                        <div key={i} onClick={() => handleSelect(p, 'source')} style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, transition: '0.2s' }} className="suggestion-item">
+                                        <div key={i} onMouseDown={() => handleSelect(p, 'source')} style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }} className="suggestion-item">
                                             <MapPin size={14} style={{ marginRight: '8px', display: 'inline' }} /> {p}
                                         </div>
                                     ))}
@@ -111,8 +116,7 @@ const CreateTrip = () => {
                             )}
                         </div>
 
-                        {/* Destination Place Search */}
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative' }} ref={destRef}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>Destination Place</label>
                             <div style={{ position: 'relative' }}>
                                 <MapPin size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--secondary)' }} />
@@ -121,6 +125,7 @@ const CreateTrip = () => {
                                     value={formData.destinationPlace}
                                     placeholder="Destination City, State, Country" 
                                     style={{ width: '100%', paddingLeft: '48px' }} 
+                                    onFocus={() => setActiveDropdown('destination')}
                                     onChange={e => {
                                         setFormData({...formData, destinationPlace: e.target.value});
                                         fetchPlaces(e.target.value, 'destination');
@@ -133,7 +138,7 @@ const CreateTrip = () => {
                             {activeDropdown === 'destination' && suggestions.destination.length > 0 && (
                                 <div className="premium-card" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 1000, marginTop: '8px', padding: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
                                     {suggestions.destination.map((p, i) => (
-                                        <div key={i} onClick={() => handleSelect(p, 'destination')} style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, transition: '0.2s' }} className="suggestion-item">
+                                        <div key={i} onMouseDown={() => handleSelect(p, 'destination')} style={{ padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }} className="suggestion-item">
                                             <MapPin size={14} style={{ marginRight: '8px', display: 'inline' }} /> {p}
                                         </div>
                                     ))}
@@ -158,12 +163,12 @@ const CreateTrip = () => {
 
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem', border: '2px dashed #eee', borderRadius: '32px' }}>
                     <Sparkles size={32} color="var(--primary)" style={{ marginBottom: '1rem' }} />
-                    <p>Enter a City name to search across the entire globe!</p>
+                    <p>Search results are powered by global open-source mapping data.</p>
                 </div>
             </div>
             
             <style>{`
-                .suggestion-item:hover { background: #F3F4F6; color: var(--primary); }
+                .suggestion-item:hover { background: #F3F4F6 !important; color: var(--primary); }
             `}</style>
         </Layout>
     );
