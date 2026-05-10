@@ -5,6 +5,7 @@ import db from './config/db.js';
 
 import authRoutes from './routes/auth.routes.js';
 import tripRoutes from './routes/trip.routes.js';
+import itineraryRoutes from './routes/itinerary.routes.js';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/trips', tripRoutes);
+app.use('/api/itinerary', itineraryRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {
