@@ -9,6 +9,11 @@ import ItineraryBuilder from './pages/ItineraryBuilder';
 import TripUtilities from './pages/TripUtilities';
 import Profile from './pages/Profile';
 import Invoice from './pages/Invoice';
+import Explore from './pages/Explore';
+import ItineraryView from './pages/ItineraryView';
+import Community from './pages/Community';
+import AdminPanel from './pages/AdminPanel';
+import TripNotes from './pages/TripNotes';
 import { AuthProvider } from './contexts/AuthContext';
 import './styles/DesignSystem.css';
 
@@ -27,6 +32,11 @@ function App() {
             <Route path="/utilities/:tripId" element={<TripUtilities />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/invoice/:tripId" element={<Invoice />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/itinerary-view/:tripId" element={<ItineraryView />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/notes" element={<TripNotes />} />
           </Routes>
         </div>
       </Router>

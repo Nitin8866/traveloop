@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, LogIn, Plane } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { Plane, Mail, Lock, ArrowRight, UserCircle } from 'lucide-react';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -14,57 +14,49 @@ const Login = () => {
         try {
             await login(email, password);
             navigate('/');
-        } catch (error) {
-            alert(error.response?.data?.message || 'Login failed');
+        } catch (err) {
+            alert('Invalid credentials');
         }
     };
 
     return (
-        <div style={{ minHeight: '100vh', display: 'flex', background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            <div className="premium-card animate-fade-in" style={{ width: '100%', maxWidth: '450px', background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)', padding: '3rem' }}>
-                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                    <div style={{ display: 'inline-flex', padding: '15px', borderRadius: '50%', background: 'var(--primary)', color: 'white', marginBottom: '1.5rem' }}>
-                        <Plane size={32} />
-                    </div>
-                    <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Welcome Back</h2>
-                    <p style={{ color: 'var(--text-muted)' }}>Login to continue your journey</p>
+        <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+            <div className="premium-card animate-fade-in" style={{ width: '100%', maxWidth: '450px', textAlign: 'center', padding: '3.5rem' }}>
+                <div style={{ background: 'var(--primary-gradient)', width: '64px', height: '64px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
+                    <Plane size={32} color="white" />
                 </div>
+                
+                <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontWeight: 800 }}>Welcome Back</h1>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '3rem' }}>Sign in to continue your global adventure</p>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <form onSubmit={handleSubmit} style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div style={{ position: 'relative' }}>
-                        <Mail size={20} style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                        <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
                         <input 
                             type="email" 
                             placeholder="Email Address" 
-                            value={email}
+                            style={{ width: '100%', padding: '14px 16px 14px 48px' }} 
                             onChange={(e) => setEmail(e.target.value)}
-                            style={{ width: '100%', padding: '1rem 1rem 1rem 3rem', borderRadius: '12px', border: '1px solid #ddd', outline: 'none', transition: '0.3s' }}
                             required
                         />
                     </div>
                     <div style={{ position: 'relative' }}>
-                        <Lock size={20} style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                        <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
                         <input 
                             type="password" 
                             placeholder="Password" 
-                            value={password}
+                            style={{ width: '100%', padding: '14px 16px 14px 48px' }} 
                             onChange={(e) => setPassword(e.target.value)}
-                            style={{ width: '100%', padding: '1rem 1rem 1rem 3rem', borderRadius: '12px', border: '1px solid #ddd', outline: 'none' }}
                             required
                         />
                     </div>
-
-                    <div style={{ textAlign: 'right' }}>
-                        <a href="#" style={{ color: 'var(--primary)', fontSize: '0.9rem', textDecoration: 'none', fontWeight: 600 }}>Forgot Password?</a>
-                    </div>
-
-                    <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '1rem' }}>
-                        <LogIn size={20} /> Login to Account
+                    <button type="submit" className="btn-primary" style={{ padding: '16px', fontSize: '1.1rem', marginTop: '1rem' }}>
+                        Sign In <ArrowRight size={20} />
                     </button>
                 </form>
 
-                <p style={{ textAlign: 'center', marginTop: '2rem', color: 'var(--text-muted)' }}>
-                    Don't have an account? <Link to="/signup" style={{ color: 'var(--secondary)', fontWeight: 700, textDecoration: 'none' }}>Sign Up</Link>
+                <p style={{ marginTop: '2.5rem', color: 'var(--text-muted)' }}>
+                    Don't have an account? <Link to="/signup" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>Create Account</Link>
                 </p>
             </div>
         </div>
