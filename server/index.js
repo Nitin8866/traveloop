@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import db from './config/db.js';
 
 import authRoutes from './routes/auth.routes.js';
+import tripRoutes from './routes/trip.routes.js';
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/trips', tripRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {
