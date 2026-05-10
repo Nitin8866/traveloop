@@ -1,13 +1,13 @@
 import db from '../config/db.js';
 
 export const createTrip = async (req, res) => {
-    const { name, description, startDate, endDate, coverPhoto } = req.body;
+    const { name, description, startDate, endDate, coverPhoto, sourcePlace, destinationPlace } = req.body;
     const userId = req.user.id; // From auth middleware
 
     try {
         const [result] = await db.execute(
-            'INSERT INTO trips (user_id, name, description, start_date, end_date, cover_photo) VALUES (?, ?, ?, ?, ?, ?)',
-            [userId, name, description, startDate, endDate, coverPhoto]
+            'INSERT INTO trips (user_id, name, description, start_date, end_date, cover_photo, source_place, destination_place) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [userId, name, description, startDate, endDate, coverPhoto, sourcePlace, destinationPlace]
         );
         res.status(201).json({ id: result.insertId, name, description });
     } catch (error) {
