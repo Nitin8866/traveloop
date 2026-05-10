@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Layout from '../components/layout/Layout';
-import { Plus, MapPin, Calendar, Compass, ArrowRight, Star, SlidersHorizontal, LayoutGrid } from 'lucide-react';
+import { Plus, MapPin, Calendar, Compass, ArrowRight, Star, SlidersHorizontal, LayoutGrid, TrendingUp, Map } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -28,10 +28,15 @@ const Dashboard = () => {
         { name: 'Middle East', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=300' },
     ];
 
+    // Quick stats
+    const totalTrips = trips.length;
+    const totalCities = trips.reduce((sum, t) => sum + (parseInt(t.stop_count) || 0), 0);
+    const upcomingTrips = trips.filter(t => t.start_date && new Date(t.start_date) > new Date()).length;
+
     return (
         <Layout>
             <div className="animate-fade-in">
-                {/* Screen 3: Banner Image */}
+                {/* Hero Banner */}
                 <div style={{ 
                     height: '400px', 
                     borderRadius: '32px', 
@@ -53,7 +58,32 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Filter Bar (Matches Wireframe) */}
+                {/* Quick Stats */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
+                    <div className="premium-card" style={{ padding: '1.5rem 2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ background: '#DBEAFE', padding: '12px', borderRadius: '14px' }}><Map size={24} color="#2563EB" /></div>
+                        <div>
+                            <p style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{totalTrips}</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>Total Trips</p>
+                        </div>
+                    </div>
+                    <div className="premium-card" style={{ padding: '1.5rem 2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ background: '#DCFCE7', padding: '12px', borderRadius: '14px' }}><MapPin size={24} color="#16A34A" /></div>
+                        <div>
+                            <p style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{totalCities}</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>Cities Explored</p>
+                        </div>
+                    </div>
+                    <div className="premium-card" style={{ padding: '1.5rem 2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ background: '#FEF3C7', padding: '12px', borderRadius: '14px' }}><TrendingUp size={24} color="#D97706" /></div>
+                        <div>
+                            <p style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{upcomingTrips}</p>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>Upcoming</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Filter Bar */}
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '3rem' }}>
                     <div style={{ flex: 1, position: 'relative' }}>
                         <Compass size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
@@ -69,8 +99,8 @@ const Dashboard = () => {
                     <h2 style={{ fontSize: '1.6rem', marginBottom: '1.5rem', fontWeight: 800 }}>Top Regional Selections</h2>
                     <div style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
                         {regions.map((region, i) => (
-                            <div key={i} style={{ flex: '0 0 200px', textAlign: 'center' }}>
-                                <div style={{ height: '140px', borderRadius: '24px', overflow: 'hidden', marginBottom: '0.8rem', border: '4px solid white', boxShadow: 'var(--shadow)' }}>
+                            <div key={i} style={{ flex: '0 0 200px', textAlign: 'center', cursor: 'pointer' }}>
+                                <div style={{ height: '140px', borderRadius: '24px', overflow: 'hidden', marginBottom: '0.8rem', border: '4px solid white', boxShadow: 'var(--shadow)', transition: 'var(--transition)' }}>
                                     <img src={region.img} alt={region.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </div>
                                 <p style={{ fontWeight: 700, fontSize: '0.95rem' }}>{region.name}</p>
@@ -79,7 +109,7 @@ const Dashboard = () => {
                     </div>
                 </section>
 
-                {/* Previous/My Trips */}
+                {/* My Trips — links to itinerary VIEW */}
                 <section>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                         <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>My Journeys</h2>
@@ -88,7 +118,7 @@ const Dashboard = () => {
                     
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '2rem' }}>
                         {trips.slice(0, 3).map(trip => (
-                            <Link key={trip.id} to={`/itinerary/${trip.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            <Link key={trip.id} to={`/itinerary-view/${trip.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
                                     <img src={trip.cover_photo || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&q=80&w=600'} style={{ width: '100%', height: '200px', objectFit: 'cover' }} alt={trip.name} />
                                     <div style={{ padding: '1.5rem' }}>
@@ -97,14 +127,23 @@ const Dashboard = () => {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F59E0B' }}><Star size={14} fill="#F59E0B" /> 4.9</div>
                                         </div>
                                         <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={14} /> {new Date(trip.start_date).toLocaleDateString()}</span>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={14} /> Multi-city</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={14} /> {trip.start_date ? new Date(trip.start_date).toLocaleDateString() : 'No date'}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={14} /> {trip.stop_count || 0} Cities</span>
                                         </div>
                                     </div>
                                 </div>
                             </Link>
                         ))}
                     </div>
+
+                    {trips.length === 0 && !loading && (
+                        <div style={{ textAlign: 'center', padding: '4rem', border: '2px dashed #E2E8F0', borderRadius: '24px', color: '#94A3B8' }}>
+                            <Compass size={48} style={{ marginBottom: '1rem' }} />
+                            <h3 style={{ fontWeight: 800, marginBottom: '0.5rem' }}>No journeys yet</h3>
+                            <p style={{ marginBottom: '1.5rem' }}>Start planning your first adventure!</p>
+                            <Link to="/create-trip" className="btn-primary" style={{ display: 'inline-flex' }}>Plan Your First Trip <ArrowRight size={18} /></Link>
+                        </div>
+                    )}
                 </section>
             </div>
         </Layout>

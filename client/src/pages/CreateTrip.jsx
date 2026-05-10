@@ -105,15 +105,27 @@ const CreateTrip = () => {
                         </div>
 
                         {!isExistingTrip && (
+                            <>
                             <div className="form-group">
                                 <label style={{ fontWeight: 800, marginBottom: '12px', display: 'block' }}>New Journey Name</label>
                                 <input 
                                     type="text" value={formData.name}
+                                    placeholder="e.g. European Adventure 2026"
                                     style={{ width: '100%', padding: '1.2rem', borderRadius: '18px', border: '2px solid #F1F5F9', fontWeight: 600 }}
                                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                                     required
                                 />
                             </div>
+                            <div className="form-group">
+                                <label style={{ fontWeight: 800, marginBottom: '12px', display: 'block' }}>Description</label>
+                                <textarea 
+                                    value={formData.description}
+                                    placeholder="Describe your trip... (e.g. Multi-city adventure through Europe focusing on culture and food)"
+                                    style={{ width: '100%', padding: '1.2rem', borderRadius: '18px', border: '2px solid #F1F5F9', fontWeight: 600, minHeight: '100px', fontFamily: 'inherit', resize: 'vertical' }}
+                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                />
+                            </div>
+                            </>
                         )}
 
                         <div className="form-group">

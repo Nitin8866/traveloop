@@ -1,4 +1,4 @@
--- Traveloop Database Schema
+-- Traveloop Database Schema (Production-Ready)
 
 CREATE DATABASE IF NOT EXISTS traveloop;
 USE traveloop;
@@ -12,9 +12,10 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
     city VARCHAR(50),
-    country VARCHAR(50),
+    country VARCHAR(100),
     photo VARCHAR(255),
     bio TEXT,
+    role VARCHAR(20) DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -27,6 +28,9 @@ CREATE TABLE IF NOT EXISTS trips (
     start_date DATE,
     end_date DATE,
     cover_photo VARCHAR(255),
+    source_place VARCHAR(255) DEFAULT '',
+    destination_place VARCHAR(255) DEFAULT '',
+    budget DECIMAL(12, 2) DEFAULT 0.00,
     is_public BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -40,7 +44,8 @@ CREATE TABLE IF NOT EXISTS stops (
     country VARCHAR(100),
     arrival_date DATE,
     departure_date DATE,
-    order_index INT NOT NULL,
+    budget DECIMAL(12, 2) DEFAULT 0.00,
+    order_index INT NOT NULL DEFAULT 0,
     FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
 );
 
@@ -50,7 +55,7 @@ CREATE TABLE IF NOT EXISTS activities (
     stop_id INT,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    type VARCHAR(50), -- Sightseeing, Food, Adventure, etc.
+    type VARCHAR(50),
     cost DECIMAL(10, 2) DEFAULT 0.00,
     duration VARCHAR(50),
     time TIME,
@@ -62,7 +67,7 @@ CREATE TABLE IF NOT EXISTS activities (
 CREATE TABLE IF NOT EXISTS expenses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     trip_id INT,
-    category VARCHAR(50), -- Transport, Stay, Activities, Meals, etc.
+    category VARCHAR(50),
     description VARCHAR(255),
     amount DECIMAL(10, 2) NOT NULL,
     status ENUM('pending', 'paid') DEFAULT 'pending',
@@ -70,21 +75,21 @@ CREATE TABLE IF NOT EXISTS expenses (
     FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
 );
 
--- 6. Checklist Table
-CREATE TABLE IF NOT EXISTS checklists (
+-- 6. Packing Items Table
+CREATE TABLE IF NOT EXISTS packing_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     trip_id INT,
     item_name VARCHAR(100) NOT NULL,
-    category VARCHAR(50), -- Clothing, Documents, Electronics, etc.
+    category VARCHAR(50) DEFAULT 'General',
     is_packed BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
 );
 
--- 7. Notes Table
-CREATE TABLE IF NOT EXISTS notes (
+-- 7. Trip Notes Table
+CREATE TABLE IF NOT EXISTS trip_notes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     trip_id INT,
-    stop_id INT, -- Optional link to a specific stop
+    stop_id INT,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,

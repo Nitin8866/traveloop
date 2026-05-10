@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -16,36 +16,64 @@ import AdminPanel from './pages/AdminPanel';
 import TripNotes from './pages/TripNotes';
 import PackingChecklist from './pages/PackingChecklist';
 import PublicItinerary from './pages/PublicItinerary';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './styles/DesignSystem.css';
 
-function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
+// Protected Route wrapper — redirects to /login if not authenticated
+const ProtectedRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+    if (loading) return <div style={{ padding: '5rem', textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>Loading...</div>;
+    if (!user) return <Navigate to="/login" replace />;
+    return children;
+};
+
+// Admin-only route wrapper
+const AdminRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+    if (loading) return <div style={{ padding: '5rem', textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>Loading...</div>;
+    if (!user) return <Navigate to="/login" replace />;
+    if (user.role !== 'admin') return <Navigate to="/" replace />;
+    return children;
+};
+
+function AppRoutes() {
+    return (
+        <Routes>
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/my-trips" element={<MyTrips />} />
-            <Route path="/create-trip" element={<CreateTrip />} />
-            <Route path="/itinerary/:tripId" element={<ItineraryBuilder />} />
-            <Route path="/utilities/:tripId" element={<TripUtilities />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/invoice/:tripId" element={<Invoice />} />
-            <Route path="/explore" element={<Explore />} />
-            <Route path="/itinerary-view/:tripId" element={<ItineraryView />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/admin/*" element={<AdminPanel />} />
-            <Route path="/notes/:tripId" element={<TripNotes />} />
-            <Route path="/packing/:tripId" element={<PackingChecklist />} />
             <Route path="/share/:tripId" element={<PublicItinerary />} />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
-  );
+
+            {/* Protected routes */}
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/my-trips" element={<ProtectedRoute><MyTrips /></ProtectedRoute>} />
+            <Route path="/create-trip" element={<ProtectedRoute><CreateTrip /></ProtectedRoute>} />
+            <Route path="/itinerary/:tripId" element={<ProtectedRoute><ItineraryBuilder /></ProtectedRoute>} />
+            <Route path="/itinerary-view/:tripId" element={<ProtectedRoute><ItineraryView /></ProtectedRoute>} />
+            <Route path="/utilities/:tripId" element={<ProtectedRoute><TripUtilities /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/invoice/:tripId" element={<ProtectedRoute><Invoice /></ProtectedRoute>} />
+            <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+            <Route path="/notes/:tripId" element={<ProtectedRoute><TripNotes /></ProtectedRoute>} />
+            <Route path="/packing/:tripId" element={<ProtectedRoute><PackingChecklist /></ProtectedRoute>} />
+
+            {/* Admin routes */}
+            <Route path="/admin/*" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+        </Routes>
+    );
+}
+
+function App() {
+    return (
+        <AuthProvider>
+            <Router>
+                <div className="App">
+                    <AppRoutes />
+                </div>
+            </Router>
+        </AuthProvider>
+    );
 }
 
 export default App;
