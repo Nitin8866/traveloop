@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../components/layout/Layout';
 import { 
@@ -11,6 +11,7 @@ import {
 const ItineraryBuilder = () => {
     const { tripId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [trip, setTrip] = useState(null);
     const [stops, setStops] = useState([]);
     const [cart, setCart] = useState([]);
@@ -19,10 +20,17 @@ const ItineraryBuilder = () => {
     const [showSummary, setShowSummary] = useState(false);
     const [isFinalizing, setIsFinalizing] = useState(false);
 
+    // DYNAMIC CITY DETECTION: Look at URL Query first
+    const queryParams = new URLSearchParams(location.search);
+    const targetCity = queryParams.get('city');
+
     const fetchDestinationGuide = async (destination) => {
         setLoadingSuggestions(true);
         try {
-            const destRes = await axios.get(`https://photon.komoot.io/api/?q=${destination}&limit=1`);
+            // Use URL param city if available, else use DB destination
+            const searchCity = targetCity || destination;
+            const destRes = await axios.get(`https://photon.komoot.io/api/?q=${searchCity}&limit=1`);
+            
             if (destRes.data.features.length) {
                 const [lon, lat] = destRes.data.features[0].geometry.coordinates;
                 const res = await axios.get(`/api/google/nearby-attractions?lat=${lat}&lon=${lon}`);
@@ -43,7 +51,7 @@ const ItineraryBuilder = () => {
         setStops(stopsRes.data);
     };
 
-    useEffect(() => { fetchData(); }, [tripId]);
+    useEffect(() => { fetchData(); }, [tripId, targetCity]); // Reload if city in URL changes
 
     const toggleSelection = (place) => {
         if (cart.find(item => item.name === place.name)) {
@@ -67,7 +75,7 @@ const ItineraryBuilder = () => {
         setIsFinalizing(false);
     };
 
-    if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}><Loader2 className="animate-spin" /> Preparing Journey...</div></Layout>;
+    if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}><Loader2 className="animate-spin" /> Syncing destination...</div></Layout>;
 
     return (
         <Layout>
@@ -79,35 +87,32 @@ const ItineraryBuilder = () => {
                             <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#DCFCE7', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
                                 <CheckCircle2 size={50} />
                             </div>
-                            <h1 style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-2px' }}>City Added Successfully!</h1>
-                            <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Here is your destination summary for {trip.name}</p>
+                            <h1 style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-2px' }}>Destination Confirmed!</h1>
+                            <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Journey: {trip.name}</p>
                         </div>
 
                         <div style={{ background: '#F8FAFC', borderRadius: '30px', padding: '4rem', marginBottom: '4rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '3rem', marginBottom: '3rem' }}>
+                            <div style={{ display: grid, gridTemplateColumns: 'repeat(3, 1fr)', gap: '3rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '3rem', marginBottom: '3rem' }}>
                                 <div>
-                                    <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>CITY</p>
-                                    <h3 style={{ fontSize: '1.8rem', fontWeight: 950 }}>{trip.destination_place.split(',')[0]}</h3>
+                                    <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>TARGET CITY</p>
+                                    <h3 style={{ fontSize: '1.8rem', fontWeight: 950 }}>{targetCity || trip.destination_place.split(',')[0]}</h3>
                                 </div>
                                 <div>
                                     <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>DATES</p>
                                     <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{new Date(trip.start_date).toLocaleDateString()} - {new Date(trip.end_date).toLocaleDateString()}</h3>
                                 </div>
                                 <div>
-                                    <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>TOTAL BUDGET</p>
+                                    <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>INR BUDGET</p>
                                     <h3 style={{ fontSize: '1.8rem', fontWeight: 950, color: '#059669' }}><IndianRupee size={24} style={{ display: 'inline', marginBottom: '4px' }} /> {(cart.length * 5000).toLocaleString()}</h3>
                                 </div>
                             </div>
 
-                            <h4 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: '2.5rem' }}>Selected Tourist Places:</h4>
+                            <h4 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: '2.5rem' }}>Visiting Highlights:</h4>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {cart.map((item, i) => (
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '1.5rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '1.5rem', background: 'white', borderRadius: '20px' }}>
                                         <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)' }}></div>
-                                        <div>
-                                            <p style={{ fontWeight: 900, fontSize: '1.1rem' }}>{item.name}</p>
-                                            <p style={{ fontSize: '0.85rem', color: '#64748B' }}>{item.address}</p>
-                                        </div>
+                                        <p style={{ fontWeight: 900, fontSize: '1.1rem' }}>{item.name}</p>
                                     </div>
                                 ))}
                             </div>
@@ -118,7 +123,7 @@ const ItineraryBuilder = () => {
                                 <Plus size={24} /> Add Another City Trip
                             </button>
                             <button className="btn-secondary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate('/dashboard')}>
-                                View Full Itinerary <ArrowRight />
+                                Finish Planning <ArrowRight />
                             </button>
                         </div>
                     </div>
@@ -126,10 +131,10 @@ const ItineraryBuilder = () => {
                     <>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-                                <button onClick={() => navigate('/create-trip')} className="btn-icon"><ArrowLeft size={28} /></button>
+                                <button onClick={() => navigate('/create-trip')} className="btn-icon" style={{ width: '60px', height: '60px', borderRadius: '18px', background: '#F1F5F9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowLeft size={28} /></button>
                                 <div>
-                                    <h1 style={{ fontSize: '3.5rem', fontWeight: 950, letterSpacing: '-3px' }}>Explore {trip.destination_place.split(',')[0]}</h1>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Select attractions to add to your journey timeline.</p>
+                                    <h1 style={{ fontSize: '3.5rem', fontWeight: 950, letterSpacing: '-3px' }}>Explore {targetCity || trip.destination_place.split(',')[0]}</h1>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Building itinerary for your selected city.</p>
                                 </div>
                             </div>
                         </div>
@@ -168,29 +173,28 @@ const ItineraryBuilder = () => {
 
                             <aside>
                                 <div className="premium-card" style={{ padding: '2.5rem', background: 'white', position: 'sticky', top: '2rem' }}>
-                                    <h3 style={{ fontSize: '1.3rem', fontWeight: 900, marginBottom: '2.5rem' }}>Current Selection ({cart.length})</h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                        {cart.map((item, i) => (
+                                    <h3 style={{ fontSize: '1.3rem', fontWeight: 900, marginBottom: '2.5rem' }}>Confirmed Stops</h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                                        {stops.map((stop, i) => (
                                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                                <CheckCircle2 size={18} color="var(--primary)" />
-                                                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.name}</span>
+                                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--primary)' }}></div>
+                                                <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{stop.city_name}</span>
                                             </div>
                                         ))}
-                                        {cart.length === 0 && <p style={{ color: '#94A3B8' }}>No places selected yet.</p>}
                                     </div>
                                 </div>
                             </aside>
                         </div>
 
                         {/* STICKY BOTTOM BAR */}
-                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: '1100px', background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(20px)', padding: '2rem 4rem', borderRadius: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: '1100px', background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(20px)', padding: '2rem 4rem', borderRadius: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000 }}>
                             <div style={{ color: 'white' }}>
-                                <p style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.7, textTransform: 'uppercase' }}>Review Selection</p>
-                                <h4 style={{ fontSize: '1.4rem', fontWeight: 900 }}>{cart.length} Destinations Selected</h4>
+                                <p style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.7 }}>BUILDING ITINERARY</p>
+                                <h4 style={{ fontSize: '1.4rem', fontWeight: 900 }}>{cart.length} Places Selected</h4>
                             </div>
                             <button 
                                 className="btn-primary" 
-                                style={{ padding: '1.2rem 3rem', fontSize: '1.1rem', borderRadius: '18px', background: 'var(--primary-gradient)' }}
+                                style={{ padding: '1.2rem 3rem', fontSize: '1.1rem', borderRadius: '18px' }}
                                 disabled={cart.length === 0 || isFinalizing}
                                 onClick={finalizeRoute}
                             >
@@ -200,6 +204,9 @@ const ItineraryBuilder = () => {
                     </>
                 )}
             </div>
+            <style>{`
+                .btn-icon:hover { background: #E2E8F0 !important; transform: scale(1.05); transition: all 0.2s; }
+            `}</style>
         </Layout>
     );
 };
