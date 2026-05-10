@@ -7,6 +7,8 @@ import MyTrips from './pages/MyTrips';
 import CreateTrip from './pages/CreateTrip';
 import ItineraryBuilder from './pages/ItineraryBuilder';
 import TripUtilities from './pages/TripUtilities';
+import Profile from './pages/Profile';
+import Invoice from './pages/Invoice';
 import { AuthProvider } from './contexts/AuthContext';
 import './styles/DesignSystem.css';
 
@@ -23,6 +25,8 @@ function App() {
             <Route path="/create-trip" element={<CreateTrip />} />
             <Route path="/itinerary/:tripId" element={<ItineraryBuilder />} />
             <Route path="/utilities/:tripId" element={<TripUtilities />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/invoice/:tripId" element={<Invoice />} />
           </Routes>
         </div>
       </Router>
