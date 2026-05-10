@@ -6,7 +6,7 @@ const auth = (req, res, next) => {
         if (!token) return res.status(401).json({ message: 'Authentication failed: No token provided' });
 
         const decodedData = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = { id: decodedData.id };
+        req.user = { id: decodedData.id, role: decodedData.role };
         next();
     } catch (error) {
         res.status(401).json({ message: 'Authentication failed: Invalid token' });
