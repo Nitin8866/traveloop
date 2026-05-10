@@ -13,7 +13,7 @@ const Layout = ({ children }) => {
     };
 
     const navItems = [
-        { icon: <Home size={20} />, label: 'Dashboard', path: '/' },
+        { icon: <Home size={20} />, label: 'Dashboard', path: user?.role === 'admin' ? '/admin' : '/' },
         { icon: <Map size={20} />, label: 'My Trips', path: '/my-trips' },
         { icon: <Compass size={20} />, label: 'Explore', path: '/explore' },
     ];
