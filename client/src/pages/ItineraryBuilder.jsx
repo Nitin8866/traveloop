@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../components/layout/Layout';
 import { 
-    Plus, Calendar, MapPin, DollarSign, ArrowRight, Sparkles, 
-    Trash2, CheckCircle2, Navigation, Compass, ShoppingCart, 
-    X, AlertCircle, TrendingUp, IndianRupee, Loader2, Landmark,
-    Camera, Utensils, Building, Info, Globe, Map as MapIcon,
-    History, Ship, BookOpen, ImageIcon, Eye, Star, ShieldCheck,
-    Square, CheckSquare, List, Map as MapLayout, ArrowLeft
+    Plus, ArrowRight, Sparkles, Trash2, CheckCircle2, ShoppingCart, 
+    X, Star, Square, CheckSquare, List, Map as MapLayout, ArrowLeft,
+    IndianRupee, Calendar, MapPin, Loader2, Info
 } from 'lucide-react';
 
 const ItineraryBuilder = () => {
@@ -19,7 +16,8 @@ const ItineraryBuilder = () => {
     const [cart, setCart] = useState([]);
     const [suggestions, setSuggestions] = useState([]);
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showSummary, setShowSummary] = useState(false);
+    const [isFinalizing, setIsFinalizing] = useState(false);
 
     const fetchDestinationGuide = async (destination) => {
         setLoadingSuggestions(true);
@@ -28,15 +26,9 @@ const ItineraryBuilder = () => {
             if (destRes.data.features.length) {
                 const [lon, lat] = destRes.data.features[0].geometry.coordinates;
                 const res = await axios.get(`/api/google/nearby-attractions?lat=${lat}&lon=${lon}`);
-                const curated = res.data.filter(place => 
-                    !place.name.includes('Limited') && 
-                    !place.name.includes('Industries') && 
-                    !place.name.includes('Fiber') &&
-                    !place.name.includes('Society')
-                );
-                setSuggestions(curated);
+                setSuggestions(res.data.filter(p => !p.name.includes('Limited') && !p.name.includes('Industries')));
             }
-        } catch (err) { console.error("Discovery Error:", err); }
+        } catch (err) { console.error(err); }
         setLoadingSuggestions(false);
     };
 
@@ -56,158 +48,156 @@ const ItineraryBuilder = () => {
     const toggleSelection = (place) => {
         if (cart.find(item => item.name === place.name)) {
             setCart(cart.filter(item => item.name !== place.name));
-        } else {
-            setCart([...cart, place]);
-        }
+        } else { setCart([...cart, place]); }
     };
 
     const finalizeRoute = async () => {
+        setIsFinalizing(true);
         const token = localStorage.getItem('token');
-        for (const item of cart) {
-            await axios.post('/api/itinerary/stops', { 
-                cityName: item.name, country: 'India', 
-                arrivalDate: trip.start_date, departureDate: trip.end_date,
-                tripId, orderIndex: stops.length, budget: 4500
-            }, { headers: { Authorization: `Bearer ${token}` } });
-        }
-        setCart([]);
-        setShowConfirmModal(false);
-        fetchData();
+        try {
+            for (const item of cart) {
+                await axios.post('/api/itinerary/stops', { 
+                    cityName: item.name, country: 'India', 
+                    arrivalDate: trip.start_date, departureDate: trip.end_date,
+                    tripId, orderIndex: stops.length, budget: 5000
+                }, { headers: { Authorization: `Bearer ${token}` } });
+            }
+            setShowSummary(true);
+        } catch (err) { console.error(err); }
+        setIsFinalizing(false);
     };
 
-    if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}><Loader2 className="animate-spin" /> Analyzing your destination...</div></Layout>;
+    if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}><Loader2 className="animate-spin" /> Preparing Journey...</div></Layout>;
 
     return (
         <Layout>
-            <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-                        <button onClick={() => navigate('/create-trip')} style={{ width: '60px', height: '60px', borderRadius: '18px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
-                            <ArrowLeft size={28} />
-                        </button>
-                        <div>
-                            <h1 style={{ fontSize: '3.5rem', fontWeight: 950, letterSpacing: '-3px', marginBottom: '0.5rem', color: '#0F172A' }}>Explore {trip.destination_place.split(',')[0]}</h1>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: 600 }}>Curating the best highlights for your journey.</p>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '1.5rem' }}>
-                        <button className="btn-secondary" style={{ padding: '1.2rem 2rem', borderRadius: '18px' }} onClick={() => navigate('/create-trip')}>
-                            <Plus size={20} /> New Destination
-                        </button>
-                        <button className="btn-primary" style={{ padding: '1.2rem 2.8rem', borderRadius: '22px', fontSize: '1.1rem' }} onClick={() => cart.length > 0 && setShowConfirmModal(true)}>
-                            <ShoppingCart size={22} /> Review Selected ({cart.length})
-                        </button>
-                    </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '6rem' }}>
-                    <section>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
-                            <h3 style={{ fontSize: '1.4rem', fontWeight: 900 }}>Visiting Places Suggestions</h3>
-                            <div style={{ display: 'flex', gap: '10px', background: '#F1F5F9', padding: '6px', borderRadius: '12px' }}>
-                                <button style={{ padding: '8px 15px', borderRadius: '8px', background: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.9rem' }}><List size={16} /> List View</button>
+            <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '120px' }}>
+                
+                {showSummary ? (
+                    <div className="premium-card animate-scale-in" style={{ padding: '5rem', background: 'white' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+                            <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#DCFCE7', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
+                                <CheckCircle2 size={50} />
                             </div>
+                            <h1 style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-2px' }}>City Added Successfully!</h1>
+                            <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>Here is your destination summary for {trip.name}</p>
                         </div>
 
-                        {loadingSuggestions ? (
-                            <div style={{ padding: '8rem', textAlign: 'center', background: '#F8FAFC', borderRadius: '40px', border: '2px dashed #E2E8F0' }}>
-                                <Loader2 size={50} className="animate-spin" color="var(--primary)" style={{ marginBottom: '2rem' }} />
-                                <h3 style={{ fontSize: '1.6rem', fontWeight: 900 }}>Fetching Data...</h3>
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {suggestions.map((place, i) => (
-                                    <div 
-                                        key={i} 
-                                        className="premium-card animate-fade-in" 
-                                        style={{ 
-                                            padding: '1.5rem', 
-                                            background: 'white', 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            gap: '2.5rem', 
-                                            cursor: 'pointer',
-                                            border: cart.find(item => item.name === place.name) ? '2.3px solid var(--primary)' : '1px solid #F1F5F9',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                        onClick={() => toggleSelection(place)}
-                                    >
-                                        <div style={{ color: cart.find(item => item.name === place.name) ? 'var(--primary)' : '#CBD5E1' }}>
-                                            {cart.find(item => item.name === place.name) ? <CheckSquare size={34} /> : <Square size={34} />}
-                                        </div>
-                                        <div style={{ width: '130px', height: '130px', borderRadius: '20px', overflow: 'hidden', flexShrink: 0 }}>
-                                            <img src={place.photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={place.name} onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1548013146-72479768b0dd?auto=format&fit=crop&q=80&w=400' }} />
-                                        </div>
-                                        <div style={{ flexGrow: 1 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                                                <h4 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1E293B' }}>{place.name}</h4>
-                                                <span style={{ fontSize: '0.75rem', fontWeight: 900, background: '#F1F5F9', padding: '4px 10px', borderRadius: '50px', color: '#64748B', textTransform: 'uppercase' }}>{place.types[0].replace('_', ' ')}</span>
-                                            </div>
-                                            <p style={{ color: '#64748B', fontSize: '0.95rem', fontWeight: 600 }}>{place.address}</p>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', color: '#F59E0B', fontWeight: 900, fontSize: '0.9rem' }}>
-                                                <Star size={16} fill="#F59E0B" /> {place.rating || 'New'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </section>
-
-                    <aside>
-                        <div className="premium-card" style={{ padding: '2.5rem', background: 'white', position: 'sticky', top: '2rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '2.5rem' }}>
-                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F0F9FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <MapLayout size={20} color="var(--primary)" />
+                        <div style={{ background: '#F8FAFC', borderRadius: '30px', padding: '4rem', marginBottom: '4rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '3rem', marginBottom: '3rem' }}>
+                                <div>
+                                    <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>CITY</p>
+                                    <h3 style={{ fontSize: '1.8rem', fontWeight: 950 }}>{trip.destination_place.split(',')[0]}</h3>
                                 </div>
-                                <h3 style={{ fontSize: '1.3rem', fontWeight: 900 }}>Route Timeline</h3>
-                            </div>
-                            
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-                                {stops.map((stop, i) => (
-                                    <div key={i} style={{ position: 'relative', paddingLeft: '45px' }}>
-                                        <div style={{ position: 'absolute', left: '0', top: '5px', width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary)', border: '6px solid white', boxShadow: '0 0 0 4px #F1F5F9' }}></div>
-                                        <p style={{ fontWeight: 900, color: '#1E293B' }}>{stop.city_name}</p>
-                                        <p style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 700 }}>Confirmed</p>
-                                    </div>
-                                ))}
-                                {stops.length === 0 && <p style={{ color: '#94A3B8', fontSize: '0.9rem', fontWeight: 700 }}>Select places to visit.</p>}
+                                <div>
+                                    <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>DATES</p>
+                                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{new Date(trip.start_date).toLocaleDateString()} - {new Date(trip.end_date).toLocaleDateString()}</h3>
+                                </div>
+                                <div>
+                                    <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>TOTAL BUDGET</p>
+                                    <h3 style={{ fontSize: '1.8rem', fontWeight: 950, color: '#059669' }}><IndianRupee size={24} style={{ display: 'inline', marginBottom: '4px' }} /> {(cart.length * 5000).toLocaleString()}</h3>
+                                </div>
                             </div>
 
-                            {stops.length > 0 && (
-                                <button className="btn-secondary" style={{ width: '100%', marginTop: '4rem', padding: '1.2rem', borderRadius: '16px' }} onClick={() => navigate('/create-trip')}>
-                                    <Plus size={20} /> Add Another Destination
-                                </button>
-                            )}
-                        </div>
-                    </aside>
-                </div>
-
-                {showConfirmModal && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.8)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(20px)' }}>
-                        <div className="premium-card animate-scale-in" style={{ width: '750px', padding: '4rem', background: 'white' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-                                <h2 style={{ fontSize: '2.2rem', fontWeight: 950 }}>Confirm Selections</h2>
-                                <button onClick={() => setShowConfirmModal(false)} style={{ color: '#94A3B8' }}><X size={32} /></button>
-                            </div>
-                            
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.8rem', marginBottom: '4rem', maxHeight: '400px', overflowY: 'auto' }}>
+                            <h4 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: '2.5rem' }}>Selected Tourist Places:</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {cart.map((item, i) => (
-                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '1.2rem', borderRadius: '20px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                            <div style={{ width: '64px', height: '64px', borderRadius: '14px', overflow: 'hidden' }}><img src={item.photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '1.5rem', background: 'white', borderRadius: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary)' }}></div>
+                                        <div>
                                             <p style={{ fontWeight: 900, fontSize: '1.1rem' }}>{item.name}</p>
+                                            <p style={{ fontSize: '0.85rem', color: '#64748B' }}>{item.address}</p>
                                         </div>
-                                        <button onClick={() => toggleSelection(item)} style={{ color: '#EF4444' }}><Trash2 size={24} /></button>
                                     </div>
                                 ))}
                             </div>
+                        </div>
 
-                            <button className="btn-primary" style={{ width: '100%', padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={finalizeRoute}>
-                                Confirm & Add to Trip <ArrowRight />
+                        <div style={{ display: 'flex', gap: '2rem' }}>
+                            <button className="btn-primary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate('/create-trip')}>
+                                <Plus size={24} /> Add Another City Trip
+                            </button>
+                            <button className="btn-secondary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate('/dashboard')}>
+                                View Full Itinerary <ArrowRight />
                             </button>
                         </div>
                     </div>
+                ) : (
+                    <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
+                                <button onClick={() => navigate('/create-trip')} className="btn-icon"><ArrowLeft size={28} /></button>
+                                <div>
+                                    <h1 style={{ fontSize: '3.5rem', fontWeight: 950, letterSpacing: '-3px' }}>Explore {trip.destination_place.split(',')[0]}</h1>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Select attractions to add to your journey timeline.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '6rem' }}>
+                            <section>
+                                {loadingSuggestions ? (
+                                    <div style={{ padding: '10rem', textAlign: 'center' }}><Loader2 size={60} className="animate-spin" color="var(--primary)" /></div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                        {suggestions.map((place, i) => (
+                                            <div 
+                                                key={i} 
+                                                className="premium-card animate-fade-in" 
+                                                style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '2.5rem', cursor: 'pointer', border: cart.find(item => item.name === place.name) ? '2.5px solid var(--primary)' : '1px solid #F1F5F9' }}
+                                                onClick={() => toggleSelection(place)}
+                                            >
+                                                <div style={{ color: cart.find(item => item.name === place.name) ? 'var(--primary)' : '#CBD5E1' }}>
+                                                    {cart.find(item => item.name === place.name) ? <CheckSquare size={36} /> : <Square size={36} />}
+                                                </div>
+                                                <div style={{ width: '140px', height: '140px', borderRadius: '24px', overflow: 'hidden' }}>
+                                                    <img src={place.photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={place.name} onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1548013146-72479768b0dd?auto=format&fit=crop&q=80&w=400' }} />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <h4 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '8px' }}>{place.name}</h4>
+                                                    <p style={{ color: '#64748B', fontWeight: 600 }}>{place.address}</p>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', color: '#F59E0B', fontWeight: 900 }}>
+                                                        <Star size={18} fill="#F59E0B" /> {place.rating || '4.5'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+
+                            <aside>
+                                <div className="premium-card" style={{ padding: '2.5rem', background: 'white', position: 'sticky', top: '2rem' }}>
+                                    <h3 style={{ fontSize: '1.3rem', fontWeight: 900, marginBottom: '2.5rem' }}>Current Selection ({cart.length})</h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                        {cart.map((item, i) => (
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                <CheckCircle2 size={18} color="var(--primary)" />
+                                                <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.name}</span>
+                                            </div>
+                                        ))}
+                                        {cart.length === 0 && <p style={{ color: '#94A3B8' }}>No places selected yet.</p>}
+                                    </div>
+                                </div>
+                            </aside>
+                        </div>
+
+                        {/* STICKY BOTTOM BAR */}
+                        <div style={{ position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: '1100px', background: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(20px)', padding: '2rem 4rem', borderRadius: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div style={{ color: 'white' }}>
+                                <p style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.7, textTransform: 'uppercase' }}>Review Selection</p>
+                                <h4 style={{ fontSize: '1.4rem', fontWeight: 900 }}>{cart.length} Destinations Selected</h4>
+                            </div>
+                            <button 
+                                className="btn-primary" 
+                                style={{ padding: '1.2rem 3rem', fontSize: '1.1rem', borderRadius: '18px', background: 'var(--primary-gradient)' }}
+                                disabled={cart.length === 0 || isFinalizing}
+                                onClick={finalizeRoute}
+                            >
+                                {isFinalizing ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={22} /> Confirm & Add to Journey</>}
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </Layout>
