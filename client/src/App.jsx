@@ -14,6 +14,8 @@ import ItineraryView from './pages/ItineraryView';
 import Community from './pages/Community';
 import AdminPanel from './pages/AdminPanel';
 import TripNotes from './pages/TripNotes';
+import PackingChecklist from './pages/PackingChecklist';
+import PublicItinerary from './pages/PublicItinerary';
 import { AuthProvider } from './contexts/AuthContext';
 import './styles/DesignSystem.css';
 
@@ -36,7 +38,9 @@ function App() {
             <Route path="/itinerary-view/:tripId" element={<ItineraryView />} />
             <Route path="/community" element={<Community />} />
             <Route path="/admin/*" element={<AdminPanel />} />
-            <Route path="/notes" element={<TripNotes />} />
+            <Route path="/notes/:tripId" element={<TripNotes />} />
+            <Route path="/packing/:tripId" element={<PackingChecklist />} />
+            <Route path="/share/:tripId" element={<PublicItinerary />} />
           </Routes>
         </div>
       </Router>

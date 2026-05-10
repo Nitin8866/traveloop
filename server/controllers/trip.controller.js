@@ -1,5 +1,18 @@
 import db from '../config/db.js';
 
+export const getPublicTrip = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [trips] = await db.execute('SELECT * FROM trips WHERE id = ?', [id]);
+        if (trips.length === 0) return res.status(404).json({ message: 'Trip not found' });
+        
+        const [stops] = await db.execute('SELECT * FROM stops WHERE trip_id = ? ORDER BY order_index ASC', [id]);
+        res.status(200).json({ ...trips[0], stops });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching public trip' });
+    }
+};
+
 export const createTrip = async (req, res) => {
     const { name, startDate, endDate, destinationPlace } = req.body;
     

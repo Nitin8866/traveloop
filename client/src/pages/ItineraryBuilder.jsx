@@ -133,7 +133,7 @@ const ItineraryBuilder = () => {
                             <button className="btn-primary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate('/create-trip')}>
                                 <Plus size={24} /> Add Another City Trip
                             </button>
-                            <button className="btn-secondary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate('/dashboard')}>
+                            <button className="btn-secondary" style={{ flex: 1, padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={() => navigate(`/itinerary-view/${tripId}`)}>
                                 Finish Planning <ArrowRight />
                             </button>
                         </div>

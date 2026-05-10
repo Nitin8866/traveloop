@@ -1,112 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../components/layout/Layout';
-import { Search, SlidersHorizontal, LayoutGrid, ArrowDown, DollarSign, MapPin, Calendar, Clock } from 'lucide-react';
+import { MapPin, Calendar, IndianRupee, Plus, ArrowLeft, MoreHorizontal, MessageSquare, Info, ShieldCheck, Share2 } from 'lucide-react';
 
 const ItineraryView = () => {
     const { tripId } = useParams();
+    const navigate = useNavigate();
     const [trip, setTrip] = useState(null);
     const [stops, setStops] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
-            const token = localStorage.getItem('token');
-            const headers = { Authorization: `Bearer ${token}` };
-            const tripRes = await axios.get(`/api/trips`, { headers });
-            setTrip(tripRes.data.find(t => t.id === parseInt(tripId)));
-            const stopsRes = await axios.get(`/api/itinerary/stops/${tripId}`, { headers });
-            
-            const stopsWithActivities = await Promise.all(stopsRes.data.map(async stop => {
-                const actRes = await axios.get(`/api/itinerary/activities/${stop.id}`, { headers });
-                return { ...stop, activities: actRes.data };
-            }));
-            setStops(stopsWithActivities);
+            try {
+                const token = localStorage.getItem('token');
+                const headers = { Authorization: `Bearer ${token}` };
+                const tripRes = await axios.get(`/api/trips`, { headers });
+                const currentTrip = tripRes.data.find(t => t.id === parseInt(tripId));
+                setTrip(currentTrip);
+                
+                const stopsRes = await axios.get(`/api/itinerary/stops/${tripId}`, { headers });
+                setStops(stopsRes.data);
+            } catch (err) { console.error(err); }
+            setLoading(false);
         };
         fetchData();
     }, [tripId]);
 
-    if (!trip) return <Layout><div>Loading...</div></Layout>;
+    if (loading) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}>Loading Master Itinerary...</div></Layout>;
+    if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}>Trip not found.</div></Layout>;
 
     return (
         <Layout>
-            <div className="animate-fade-in" style={{ maxWidth: '1100px', margin: '0 auto' }}>
-                <div style={{ marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Itinerary for {trip.name}</h1>
-                    <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-muted)' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={16} /> {new Date(trip.start_date).toLocaleDateString()} — {new Date(trip.end_date).toLocaleDateString()}</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={16} /> {stops.length} Destinations</span>
+            <div className="animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <button onClick={() => navigate('/my-trips')} className="btn-icon" style={{ background: '#F8FAFC', border: 'none', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}>
+                            <ArrowLeft size={24} />
+                        </button>
+                        <h1 style={{ fontSize: '2.5rem', fontWeight: 950, letterSpacing: '-2px' }}>{trip.name} Master Plan</h1>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button onClick={() => navigate(`/packing/${tripId}`)} style={{ padding: '10px 20px', borderRadius: '15px', background: '#F1F5F9', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <ShieldCheck size={18} /> Packing
+                        </button>
+                        <button onClick={() => navigate(`/notes/${tripId}`)} style={{ padding: '10px 20px', borderRadius: '15px', background: '#F1F5F9', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <MessageSquare size={18} /> Notes
+                        </button>
+                        <button onClick={() => navigate(`/share/${tripId}`)} style={{ padding: '10px 20px', borderRadius: '15px', background: '#000', color: 'white', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Share2 size={18} /> Share
+                        </button>
                     </div>
                 </div>
 
-                {/* Filters Row (Matches Wireframe) */}
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '3rem' }}>
-                    <div style={{ flex: 1, position: 'relative' }}>
-                        <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
-                        <input type="text" placeholder="Search itinerary..." style={{ width: '100%', paddingLeft: '48px' }} />
-                    </div>
-                    <button style={{ padding: '0 20px', borderRadius: '12px', border: '1px solid #eee', background: 'white', color: '#555', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}><LayoutGrid size={18} /> Group by</button>
-                    <button style={{ padding: '0 20px', borderRadius: '12px', border: '1px solid #eee', background: 'white', color: '#555', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}><SlidersHorizontal size={18} /> Filter</button>
-                    <button style={{ padding: '0 20px', borderRadius: '12px', border: '1px solid #eee', background: 'white', color: '#555', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>Sort by...</button>
-                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                    {stops.length > 0 ? stops.map((stop, i) => (
+                        <div key={stop.id} className="premium-card animate-fade-in" style={{ padding: '3.5rem', background: 'white', border: '1px solid #E2E8F0', borderRadius: '32px' }}>
+                            <div style={{ marginBottom: '2.5rem' }}>
+                                <h2 style={{ fontSize: '1.6rem', fontWeight: 950, marginBottom: '1.5rem' }}>Section {i + 1}:</h2>
+                                <p style={{ color: '#475569', lineHeight: 1.8, fontSize: '1.05rem', fontWeight: 500 }}>
+                                    All the necessary information about this section. This can be anything like travel section, hotel or any other activity in <strong>{stop.city_name}</strong>.
+                                </p>
+                            </div>
 
-                {/* Itinerary Grid (Matches Wireframe: Day | Physical Activity | Expense) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr 150px', gap: '2rem', padding: '1rem', borderBottom: '2px solid #eee', marginBottom: '2rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>
-                    <div>Day</div>
-                    <div>Physical Activity</div>
-                    <div style={{ textAlign: 'right' }}>Expense</div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem' }}>
-                    {stops.map((stop, i) => (
-                        <div key={stop.id} style={{ display: 'grid', gridTemplateColumns: '100px 1fr 150px', gap: '2rem' }}>
-                            {/* Day Column */}
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <div style={{ width: '60px', height: '60px', borderRadius: '20px', background: 'var(--primary-gradient)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.2rem', boxShadow: 'var(--shadow)' }}>
-                                    {i + 1}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                                <div style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '1.5rem 2rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <Calendar size={20} color="#64748B" />
+                                    <p style={{ fontWeight: 800, color: '#1E293B' }}>
+                                        Date Range: {new Date(stop.arrival_date).toLocaleDateString()} to {new Date(stop.departure_date).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '1.5rem 2rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <IndianRupee size={20} color="#059669" />
+                                    <p style={{ fontWeight: 800, color: '#1E293B' }}>
+                                        Budget of this section: ₹{stop.budget?.toLocaleString() || '5,000'}
+                                    </p>
                                 </div>
                             </div>
-
-                            {/* Physical Activity Column */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {stop.activities?.map((act, j) => (
-                                    <React.Fragment key={j}>
-                                        <div className="premium-card" style={{ padding: '1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                                            <div style={{ background: '#F0FDF4', color: '#166534', padding: '10px', borderRadius: '12px' }}><Clock size={20} /></div>
-                                            <div style={{ flex: 1 }}>
-                                                <h4 style={{ fontSize: '1.1rem', fontWeight: 800 }}>{act.name}</h4>
-                                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{act.time} • {act.type}</p>
-                                            </div>
-                                        </div>
-                                        {j < stop.activities.length - 1 && <div style={{ display: 'flex', justifyContent: 'center', color: '#eee' }}><ArrowDown size={24} /></div>}
-                                    </React.Fragment>
-                                ))}
-                                {stop.activities?.length === 0 && <p style={{ color: '#999', textAlign: 'center', padding: '2rem', border: '2px dashed #eee', borderRadius: '20px' }}>No activities planned for this city.</p>}
-                            </div>
-
-                            {/* Expense Column */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {stop.activities?.map((act, j) => (
-                                    <div key={j} style={{ height: '88px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontWeight: 800, color: 'var(--primary)', fontSize: '1.2rem' }}>
-                                        ${act.cost}
-                                    </div>
-                                ))}
-                            </div>
                         </div>
-                    ))}
-                </div>
+                    )) : (
+                        <div style={{ padding: '6rem', textAlign: 'center', background: '#F8FAFC', borderRadius: '32px', border: '2px dashed #CBD5E1' }}>
+                            <Info size={48} color="#94A3B8" style={{ marginBottom: '1.5rem' }} />
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#64748B' }}>No sections added yet</h3>
+                        </div>
+                    )}
 
-                <div style={{ marginTop: '5rem', padding: '3rem', background: 'white', borderRadius: '32px', border: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.5rem' }}>Total Trip Budget</h3>
-                        <p style={{ color: 'var(--text-muted)' }}>Estimated total based on your activities and stops.</p>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Grand Total</p>
-                        <h2 style={{ fontSize: '3rem', color: 'var(--primary)', fontWeight: 900 }}>$2,450.00</h2>
+                    {/* Add Another Section Button (Matches Wireframe) */}
+                    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                        <button 
+                            onClick={() => navigate('/create-trip')}
+                            style={{ 
+                                padding: '1.8rem 4rem', 
+                                background: 'white', 
+                                border: '2.5px solid #000', 
+                                borderRadius: '24px', 
+                                fontSize: '1.3rem', 
+                                fontWeight: 950, 
+                                display: 'inline-flex', 
+                                alignItems: 'center', 
+                                gap: '15px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 10px 20px rgba(0,0,0,0.05)'
+                            }}
+                            onMouseOver={(e) => { e.currentTarget.style.background = '#000'; e.currentTarget.style.color = '#fff'; }}
+                            onMouseOut={(e) => { e.currentTarget.style.background = '#white'; e.currentTarget.style.color = '#000'; }}
+                        >
+                            <Plus size={32} /> Add another Section
+                        </button>
                     </div>
                 </div>
             </div>
+            <style>{`
+                .btn-icon:hover { background: #E2E8F0 !important; transform: scale(1.05); transition: all 0.2s; }
+            `}</style>
         </Layout>
     );
 };
