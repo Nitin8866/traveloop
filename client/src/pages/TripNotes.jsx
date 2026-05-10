@@ -113,7 +113,7 @@ const TripNotes = () => {
                                             {stop && (
                                                 <span style={{ background: '#DBEAFE', padding: '4px 12px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800, color: '#1D4ED8', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     <MapPin size={12} /> {stop.city_name}
-                                                </div>
+                                                </span>
                                             )}
                                         </div>
                                         <button onClick={() => deleteNote(note.id)} style={{ color: '#FDA4AF', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={20} /></button>
