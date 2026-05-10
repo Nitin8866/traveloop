@@ -63,15 +63,26 @@ const ItineraryBuilder = () => {
         setIsFinalizing(true);
         const token = localStorage.getItem('token');
         try {
+            // Clean Dates for MySQL
+            const sDate = trip.start_date ? new Date(trip.start_date).toISOString().split('T')[0] : null;
+            const eDate = trip.end_date ? new Date(trip.end_date).toISOString().split('T')[0] : null;
+
             for (const item of cart) {
                 await axios.post('/api/itinerary/stops', { 
-                    cityName: item.name, country: 'India', 
-                    arrivalDate: trip.start_date, departureDate: trip.end_date,
-                    tripId, orderIndex: stops.length, budget: 5000
+                    cityName: item.name, 
+                    country: 'India', 
+                    arrivalDate: sDate, 
+                    departureDate: eDate,
+                    tripId, 
+                    orderIndex: stops.length, 
+                    budget: 5000
                 }, { headers: { Authorization: `Bearer ${token}` } });
             }
             setShowSummary(true);
-        } catch (err) { console.error(err); }
+        } catch (err) { 
+            console.error('SAVE ERROR:', err);
+            alert('Error saving selections. Please try again.');
+        }
         setIsFinalizing(false);
     };
 
@@ -92,7 +103,7 @@ const ItineraryBuilder = () => {
                         </div>
 
                         <div style={{ background: '#F8FAFC', borderRadius: '30px', padding: '4rem', marginBottom: '4rem' }}>
-                            <div style={{ display: grid, gridTemplateColumns: 'repeat(3, 1fr)', gap: '3rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '3rem', marginBottom: '3rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '3rem', marginBottom: '3rem' }}>
                                 <div>
                                     <p style={{ fontWeight: 800, color: '#64748B', fontSize: '0.9rem', marginBottom: '8px' }}>TARGET CITY</p>
                                     <h3 style={{ fontSize: '1.8rem', fontWeight: 950 }}>{targetCity || trip.destination_place.split(',')[0]}</h3>
