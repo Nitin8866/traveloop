@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Layout from '../components/layout/Layout';
-import { Plus, MapPin, Calendar, TrendingUp, Compass, ArrowRight } from 'lucide-react';
+import { Plus, MapPin, Calendar, Compass, ArrowRight, Star, SlidersHorizontal, LayoutGrid } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -12,100 +12,100 @@ const Dashboard = () => {
         const fetchTrips = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get('/api/trips', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setTrips(res.data.slice(0, 3)); // Show only latest 3
+                const res = await axios.get('/api/trips', { headers: { Authorization: `Bearer ${token}` } });
+                setTrips(res.data);
                 setLoading(false);
-            } catch (error) {
-                setLoading(false);
-            }
+            } catch (err) { setLoading(false); }
         };
         fetchTrips();
     }, []);
 
+    const regions = [
+        { name: 'Western Europe', img: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=300' },
+        { name: 'South Asia', img: 'https://images.unsplash.com/photo-1524492707947-2f354641ad35?auto=format&fit=crop&w=300' },
+        { name: 'North America', img: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=300' },
+        { name: 'Scandinavia', img: 'https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?auto=format&fit=crop&w=300' },
+        { name: 'Middle East', img: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=300' },
+    ];
+
     return (
         <Layout>
             <div className="animate-fade-in">
-                {/* Hero Card */}
+                {/* Screen 3: Banner Image */}
                 <div style={{ 
-                    background: 'linear-gradient(135deg, var(--primary), var(--primary-light))', 
-                    borderRadius: '24px', 
-                    padding: '3.5rem', 
-                    color: 'white', 
-                    position: 'relative', 
+                    height: '400px', 
+                    borderRadius: '32px', 
+                    backgroundImage: 'url(https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=1400)', 
+                    backgroundSize: 'cover', 
+                    backgroundPosition: 'center',
+                    marginBottom: '2rem',
+                    position: 'relative',
                     overflow: 'hidden',
-                    marginBottom: '3rem',
-                    boxShadow: '0 20px 40px rgba(15, 76, 92, 0.2)'
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0 4rem'
                 }}>
-                    <div style={{ position: 'relative', zIndex: 1, maxWidth: '600px' }}>
-                        <h1 style={{ color: 'white', fontSize: '3rem', marginBottom: '1.2rem', lineHeight: 1.1 }}>Explore the world, one city at a time.</h1>
-                        <p style={{ fontSize: '1.2rem', opacity: 0.9, marginBottom: '2.5rem' }}>Traveloop helps you design, organize, and budget your multi-city adventures effortlessly.</p>
-                        <Link to="/create-trip" className="btn-primary" style={{ background: 'var(--secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-                            <Plus size={20} /> Plan New Adventure
-                        </Link>
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.6), transparent)' }}></div>
+                    <div style={{ position: 'relative', color: 'white', maxWidth: '600px' }}>
+                        <h1 style={{ color: 'white', fontSize: '3.5rem', fontWeight: 900, marginBottom: '1rem', lineHeight: 1 }}>Your Next Journey Starts Here.</h1>
+                        <p style={{ fontSize: '1.2rem', opacity: 0.9, marginBottom: '2.5rem' }}>Discover unique multi-city itineraries tailored to your style and budget.</p>
+                        <Link to="/create-trip" className="btn-primary" style={{ padding: '16px 32px' }}>Start Planning <Plus size={20} /></Link>
                     </div>
-                    <Compass size={300} style={{ position: 'absolute', right: '-50px', bottom: '-50px', color: 'rgba(255,255,255,0.05)', transform: 'rotate(-15deg)' }} />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '3rem' }}>
-                    {/* Recent Trips Section */}
-                    <section>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3 style={{ fontSize: '1.4rem' }}>Your Recent Journeys</h3>
-                            <Link to="/my-trips" style={{ color: 'var(--secondary)', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>View All <ArrowRight size={16} /></Link>
-                        </div>
+                {/* Filter Bar (Matches Wireframe) */}
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '3rem' }}>
+                    <div style={{ flex: 1, position: 'relative' }}>
+                        <Compass size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
+                        <input type="text" placeholder="Search for cities or destinations..." style={{ width: '100%', paddingLeft: '48px', border: '1px solid #eee' }} />
+                    </div>
+                    <button style={{ padding: '0 20px', borderRadius: '12px', border: '1px solid #eee', background: 'white', color: '#555', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}><LayoutGrid size={18} /> Group by</button>
+                    <button style={{ padding: '0 20px', borderRadius: '12px', border: '1px solid #eee', background: 'white', color: '#555', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}><SlidersHorizontal size={18} /> Filter</button>
+                    <button style={{ padding: '0 20px', borderRadius: '12px', border: '1px solid #eee', background: 'white', color: '#555', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>Sort by...</button>
+                </div>
 
-                        {loading ? (
-                            <p>Loading trips...</p>
-                        ) : trips.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                                {trips.map(trip => (
-                                    <Link key={trip.id} to={`/itinerary/${trip.id}`} className="premium-card" style={{ display: 'flex', gap: '1.5rem', padding: '1rem', textDecoration: 'none', color: 'inherit' }}>
-                                        <img src={trip.cover_photo || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&q=80&w=200'} style={{ width: '100px', height: '100px', borderRadius: '14px', objectFit: 'cover' }} alt={trip.name} />
-                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                            <h4 style={{ fontSize: '1.2rem', marginBottom: '0.4rem' }}>{trip.name}</h4>
-                                            <div style={{ display: 'flex', gap: '1.2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={14} /> {new Date(trip.start_date).toLocaleDateString()}</span>
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={14} /> Multi-city</span>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', paddingRight: '1rem' }}>
-                                            <ArrowRight size={20} color="#ccc" />
-                                        </div>
-                                    </Link>
-                                ))}
+                {/* Top Regional Selections */}
+                <section style={{ marginBottom: '4rem' }}>
+                    <h2 style={{ fontSize: '1.6rem', marginBottom: '1.5rem', fontWeight: 800 }}>Top Regional Selections</h2>
+                    <div style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+                        {regions.map((region, i) => (
+                            <div key={i} style={{ flex: '0 0 200px', textAlign: 'center' }}>
+                                <div style={{ height: '140px', borderRadius: '24px', overflow: 'hidden', marginBottom: '0.8rem', border: '4px solid white', boxShadow: 'var(--shadow)' }}>
+                                    <img src={region.img} alt={region.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                                <p style={{ fontWeight: 700, fontSize: '0.95rem' }}>{region.name}</p>
                             </div>
-                        ) : (
-                            <div style={{ padding: '3rem', textAlign: 'center', border: '2px dashed #ddd', borderRadius: '24px' }}>
-                                <p style={{ color: 'var(--text-muted)' }}>No journeys planned yet. Start your first one!</p>
-                            </div>
-                        )}
-                    </section>
+                        ))}
+                    </div>
+                </section>
 
-                    {/* Popular Destinations Sidebar */}
-                    <aside>
-                        <div className="premium-card" style={{ background: 'white', border: '1px solid #eee' }}>
-                            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}><TrendingUp size={20} color="var(--secondary)" /> Trending Now</h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {[
-                                    { city: 'Santorini', country: 'Greece', img: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&q=80&w=100' },
-                                    { city: 'Kyoto', country: 'Japan', img: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&q=80&w=100' },
-                                    { city: 'Amalfi', country: 'Italy', img: 'https://images.unsplash.com/photo-1533104816931-20fa691ff6ca?auto=format&fit=crop&q=80&w=100' }
-                                ].map((item, i) => (
-                                    <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                        <img src={item.img} style={{ width: '50px', height: '50px', borderRadius: '10px', objectFit: 'cover' }} alt={item.city} />
-                                        <div>
-                                            <p style={{ fontWeight: 700, fontSize: '0.95rem' }}>{item.city}</p>
-                                            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{item.country}</p>
+                {/* Previous/My Trips */}
+                <section>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        <h2 style={{ fontSize: '1.6rem', fontWeight: 800 }}>My Journeys</h2>
+                        <Link to="/my-trips" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>See all trips</Link>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '2rem' }}>
+                        {trips.slice(0, 3).map(trip => (
+                            <Link key={trip.id} to={`/itinerary/${trip.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
+                                    <img src={trip.cover_photo || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&q=80&w=600'} style={{ width: '100%', height: '200px', objectFit: 'cover' }} alt={trip.name} />
+                                    <div style={{ padding: '1.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                            <h3 style={{ fontSize: '1.2rem' }}>{trip.name}</h3>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F59E0B' }}><Star size={14} fill="#F59E0B" /> 4.9</div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={14} /> {new Date(trip.start_date).toLocaleDateString()}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><MapPin size={14} /> Multi-city</span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                            <button className="btn-primary" style={{ width: '100%', marginTop: '2rem', background: '#f8f9fa', color: 'var(--primary)', boxShadow: 'none' }}>Discover More</button>
-                        </div>
-                    </aside>
-                </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
             </div>
         </Layout>
     );
