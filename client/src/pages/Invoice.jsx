@@ -1,47 +1,89 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '../components/layout/Layout';
-import { FileText, Download, Printer, CheckCircle2, DollarSign, Calendar, MapPin, PieChart as PieChartIcon } from 'lucide-react';
+import { FileText, Download, Printer, CheckCircle2, IndianRupee, Calendar, MapPin, PieChart as PieChartIcon, ArrowLeft, Plus, Trash2, Loader2 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Invoice = () => {
     const { tripId } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const [trip, setTrip] = useState(null);
     const [expenses, setExpenses] = useState([]);
+    const [stops, setStops] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [newExpense, setNewExpense] = useState({ category: 'Transport', description: '', amount: '' });
 
     useEffect(() => {
         const fetchData = async () => {
-            const token = localStorage.getItem('token');
-            const headers = { Authorization: `Bearer ${token}` };
-            const tripRes = await axios.get(`/api/trips`, { headers });
-            setTrip(tripRes.data.find(t => t.id === parseInt(tripId)));
-            const expRes = await axios.get(`/api/utility/expenses/${tripId}`, { headers });
-            setExpenses(expRes.data);
+            try {
+                const token = localStorage.getItem('token');
+                const headers = { Authorization: `Bearer ${token}` };
+                const [tripRes, expRes, stopsRes] = await Promise.all([
+                    axios.get(`/api/trips`, { headers }),
+                    axios.get(`/api/utility/expenses/${tripId}`, { headers }),
+                    axios.get(`/api/itinerary/stops/${tripId}`, { headers })
+                ]);
+                setTrip(tripRes.data.find(t => t.id === parseInt(tripId)));
+                setExpenses(expRes.data);
+                setStops(stopsRes.data);
+            } catch (err) { console.error(err); }
+            setLoading(false);
         };
         fetchData();
     }, [tripId]);
 
-    const subtotal = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
+    const addExpense = async (e) => {
+        e.preventDefault();
+        if (!newExpense.description || !newExpense.amount) return;
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.post('/api/utility/expenses', {
+                tripId,
+                category: newExpense.category,
+                description: newExpense.description,
+                amount: newExpense.amount,
+                date: new Date().toISOString().split('T')[0]
+            }, { headers: { Authorization: `Bearer ${token}` } });
+            setExpenses([...expenses, { ...newExpense, id: res.data.id, date: new Date().toISOString() }]);
+            setNewExpense({ category: 'Transport', description: '', amount: '' });
+            setShowAddForm(false);
+        } catch (err) { console.error(err); }
+    };
+
+    if (loading) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}><Loader2 className="animate-spin" /> Loading invoice...</div></Layout>;
+    if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}>Trip not found.</div></Layout>;
+
+    const subtotal = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
     const tax = subtotal * 0.05;
     const discount = 50;
     const total = subtotal + tax - discount;
+    const totalBudget = stops.reduce((sum, s) => sum + (parseFloat(s.budget) || 5000), 0);
+    const remaining = totalBudget - subtotal;
 
-    if (!trip) return <Layout><div>Loading...</div></Layout>;
+    const categories = ['Transport', 'Stay', 'Activities', 'Meals', 'Shopping', 'Other'];
 
     return (
         <Layout>
             <div className="animate-fade-in" style={{ maxWidth: '1100px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3.5rem' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800 }}>Expense Invoice</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <button onClick={() => navigate(`/itinerary-view/${tripId}`)} className="btn-icon" style={{ background: '#F8FAFC', border: 'none', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}>
+                            <ArrowLeft size={24} />
+                        </button>
+                        <h1 style={{ fontSize: '2.5rem', fontWeight: 800 }}>Expense Invoice</h1>
+                    </div>
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button className="btn-primary" style={{ background: '#F3F4F6', color: 'var(--text-main)', border: '1px solid #E5E7EB' }}><Download size={18} /> Download Invoice</button>
-                        <button className="btn-primary" style={{ background: '#F3F4F6', color: 'var(--text-main)', border: '1px solid #E5E7EB' }}><FileText size={18} /> Export as PDF</button>
+                        <button onClick={() => window.print()} className="btn-primary" style={{ background: '#F3F4F6', color: 'var(--text-main)', border: '1px solid #E5E7EB' }}><Download size={18} /> Download Invoice</button>
+                        <button onClick={() => window.print()} className="btn-primary" style={{ background: '#F3F4F6', color: 'var(--text-main)', border: '1px solid #E5E7EB' }}><FileText size={18} /> Export as PDF</button>
                         <button className="btn-primary"><CheckCircle2 size={18} /> Mark as paid</button>
                     </div>
                 </div>
 
                 <div className="premium-card" style={{ padding: '4rem', background: 'white' }}>
-                    {/* Header (Matches Wireframe) */}
+                    {/* Header */}
                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '3rem', borderBottom: '2px solid #F9FAFB', paddingBottom: '3rem', marginBottom: '3rem' }}>
                         <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '2.5rem' }}>
@@ -54,31 +96,56 @@ const Invoice = () => {
                                 <div>
                                     <p style={{ fontWeight: 800, fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>Trip Details</p>
                                     <h4 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{trip.name}</h4>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}><Calendar size={12} /> {new Date(trip.start_date).toLocaleDateString()} — {new Date(trip.end_date).toLocaleDateString()}</p>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}><Calendar size={12} /> {trip.start_date ? new Date(trip.start_date).toLocaleDateString() : 'N/A'} — {trip.end_date ? new Date(trip.end_date).toLocaleDateString() : 'N/A'}</p>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '4px' }}>Traveler Details:</p>
+                                    <p style={{ fontWeight: 600, fontSize: '0.85rem' }}>{user?.firstName} {user?.lastName}</p>
                                 </div>
                                 <div>
                                     <p style={{ fontWeight: 800, fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>Invoice Info</p>
                                     <p style={{ fontWeight: 700 }}>Invoice Id: <span style={{ color: 'var(--text-muted)' }}>INV-tp-{trip.id}0240</span></p>
                                     <p style={{ fontWeight: 700 }}>Generated date: <span style={{ color: 'var(--text-muted)' }}>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></p>
+                                    <p style={{ fontWeight: 700 }}>Payment status: <span style={{ color: 'var(--warning)' }}>pending</span></p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Budget Insights (Matches Wireframe) */}
+                        {/* Budget Insights */}
                         <div style={{ background: '#F9FAFB', borderRadius: '24px', padding: '2rem' }}>
                             <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}><PieChartIcon size={16} /> Budget Insights</h4>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                                <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '15px solid var(--primary)', borderTopColor: '#eee' }}></div>
+                                <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: `15px solid ${remaining >= 0 ? 'var(--primary)' : 'var(--error)'}`, borderTopColor: '#eee' }}></div>
                                 <div style={{ fontSize: '0.85rem' }}>
-                                    <p style={{ fontWeight: 700 }}>Total Budget: <span style={{ color: 'var(--primary)' }}>$22,000</span></p>
-                                    <p style={{ fontWeight: 700 }}>Total Spent: <span style={{ color: 'var(--accent)' }}>$2,450</span></p>
-                                    <p style={{ fontWeight: 700 }}>Remaining: <span style={{ color: 'var(--warning)' }}>$19,550</span></p>
+                                    <p style={{ fontWeight: 700 }}>Total Budget: <span style={{ color: 'var(--primary)' }}>₹{totalBudget.toLocaleString()}</span></p>
+                                    <p style={{ fontWeight: 700 }}>Total Spent: <span style={{ color: 'var(--accent)' }}>₹{subtotal.toLocaleString()}</span></p>
+                                    <p style={{ fontWeight: 700 }}>Remaining: <span style={{ color: remaining >= 0 ? 'var(--warning)' : 'var(--error)' }}>₹{remaining.toLocaleString()}</span></p>
                                 </div>
                             </div>
+                            <button onClick={() => navigate(`/utilities/${tripId}`)} style={{ marginTop: '1rem', width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid #E2E8F0', background: 'white', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' }}>
+                                View Full Budget
+                            </button>
                         </div>
                     </div>
 
-                    {/* Invoice Table (Matches Wireframe) */}
+                    {/* Add Expense Button */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        {showAddForm ? (
+                            <form onSubmit={addExpense} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: '#F8FAFC', padding: '1.5rem', borderRadius: '16px' }}>
+                                <select value={newExpense.category} onChange={e => setNewExpense({...newExpense, category: e.target.value})} style={{ padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 600 }}>
+                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                                <input type="text" placeholder="Description" value={newExpense.description} onChange={e => setNewExpense({...newExpense, description: e.target.value})} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 600 }} required />
+                                <input type="number" placeholder="Amount (₹)" value={newExpense.amount} onChange={e => setNewExpense({...newExpense, amount: e.target.value})} style={{ width: '120px', padding: '10px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 600 }} required />
+                                <button type="submit" className="btn-primary" style={{ padding: '10px 20px' }}>Add</button>
+                                <button type="button" onClick={() => setShowAddForm(false)} style={{ padding: '10px', border: 'none', background: 'none', cursor: 'pointer', color: '#94A3B8' }}>✕</button>
+                            </form>
+                        ) : (
+                            <button onClick={() => setShowAddForm(true)} style={{ padding: '12px 24px', borderRadius: '14px', border: '2px dashed #CBD5E1', background: 'transparent', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B' }}>
+                                <Plus size={18} /> Add Expense
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Invoice Table */}
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '4rem' }}>
                         <thead>
                             <tr style={{ textAlign: 'left', borderBottom: '2px solid #F9FAFB', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -96,35 +163,41 @@ const Invoice = () => {
                                     <td style={{ padding: '1.2rem 0', fontWeight: 700 }}>{i + 1}</td>
                                     <td style={{ padding: '1.2rem' }}><span style={{ padding: '4px 12px', borderRadius: '50px', background: '#F3F4F6', fontSize: '0.75rem', fontWeight: 800 }}>{exp.category}</span></td>
                                     <td style={{ padding: '1.2rem', color: 'var(--text-muted)' }}>{exp.description}</td>
-                                    <td style={{ padding: '1.2rem', color: 'var(--text-muted)' }}>1 Unit / 3 nights</td>
-                                    <td style={{ padding: '1.2rem', textAlign: 'right', fontWeight: 700 }}>${exp.amount}</td>
-                                    <td style={{ padding: '1.2rem', textAlign: 'right', fontWeight: 800, color: 'var(--primary)' }}>${exp.amount}</td>
+                                    <td style={{ padding: '1.2rem', color: 'var(--text-muted)' }}>1</td>
+                                    <td style={{ padding: '1.2rem', textAlign: 'right', fontWeight: 700 }}>₹{parseFloat(exp.amount || 0).toLocaleString()}</td>
+                                    <td style={{ padding: '1.2rem', textAlign: 'right', fontWeight: 800, color: 'var(--primary)' }}>₹{parseFloat(exp.amount || 0).toLocaleString()}</td>
                                 </tr>
                             ))}
+                            {expenses.length === 0 && (
+                                <tr><td colSpan="6" style={{ padding: '3rem', textAlign: 'center', color: '#94A3B8' }}>No expenses recorded yet.</td></tr>
+                            )}
                         </tbody>
                     </table>
 
-                    {/* Footer Totals (Matches Wireframe) */}
+                    {/* Footer Totals */}
                     <div style={{ width: '300px', marginLeft: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontWeight: 600 }}>
                             <span>Subtotal</span>
-                            <span>${subtotal.toFixed(2)}</span>
+                            <span>₹{subtotal.toFixed(2)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontWeight: 600 }}>
                             <span>Tax (5%)</span>
-                            <span>${tax.toFixed(2)}</span>
+                            <span>₹{tax.toFixed(2)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--warning)', fontWeight: 600 }}>
                             <span>Discount</span>
-                            <span>-${discount.toFixed(2)}</span>
+                            <span>-₹{discount.toFixed(2)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #111', paddingTop: '1rem', fontSize: '1.4rem', fontWeight: 900 }}>
                             <span>Grand Total</span>
-                            <span>${total.toFixed(2)}</span>
+                            <span>₹{total.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
             </div>
+            <style>{`
+                .btn-icon:hover { background: #E2E8F0 !important; transform: scale(1.05); transition: all 0.2s; }
+            `}</style>
         </Layout>
     );
 };
