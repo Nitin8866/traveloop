@@ -13,11 +13,7 @@ const Login = () => {
         e.preventDefault();
         try {
             const data = await login(email, password);
-            if (data.user.role === 'admin') {
-                navigate('/admin');
-            } else {
-                navigate('/');
-            }
+            navigate('/');
         } catch (err) {
             alert('Invalid credentials');
         }

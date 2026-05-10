@@ -1,0 +1,31 @@
+USE traveloop;
+
+-- Expenses
+INSERT INTO expenses (trip_id,category,description,amount,status,date) VALUES
+(1,'Stay','Hotel stay',200.00,'paid','2025-02-10'),
+(1,'Transport','Flights',150.00,'paid','2025-02-01'),
+(1,'Meals','Seafood dinner',40.00,'paid','2025-02-11'),
+(2,'Stay','Heritage hotel',300.00,'paid','2025-04-25'),
+(2,'Activities','Fort tickets',50.00,'paid','2025-05-02'),
+(3,'Stay','Houseboat rental',150.00,'paid','2025-03-05'),
+(4,'Transport','Bus tickets',30.00,'paid','2025-07-01'),
+(5,'Transport','Eurail pass',350.00,'paid','2025-05-20'),
+(5,'Meals','Street food',60.00,'paid','2025-06-05'),
+(5,'Stay','Hostels',400.00,'paid','2025-05-25'),
+(6,'Stay','Resort',500.00,'paid','2025-08-25'),
+(7,'Activities','Spa',100.00,'paid','2025-04-22'),
+(8,'Transport','Bike rental',200.00,'paid','2025-06-15'),
+(9,'Meals','Local cuisine',80.00,'paid','2025-10-06'),
+(10,'Stay','Ryokan',450.00,'paid','2025-03-20'),
+(10,'Transport','JR Pass',250.00,'paid','2025-03-15'),
+(11,'Meals','Fine dining',150.00,'paid','2025-08-05'),
+(12,'Activities','Whisky tour',80.00,'paid','2025-05-12'),
+(13,'Stay','Hotels',200.00,'paid','2025-06-15'),
+(14,'Activities','Desert tour',120.00,'paid','2025-07-06'),
+(15,'Stay','Water villa',1200.00,'paid','2025-08-10'),
+(15,'Transport','Seaplane',300.00,'paid','2025-08-15'),
+(16,'Activities','Trekking permit',50.00,'paid','2025-09-02'),
+(17,'Stay','Hotels',150.00,'paid','2025-04-05'),
+(18,'Transport','Car rental',600.00,'paid','2025-06-25'),
+(19,'Stay','Villa',800.00,'paid','2025-06-05'),
+(20,'Activities','Camel safari',40.00,'paid','2025-11-02');

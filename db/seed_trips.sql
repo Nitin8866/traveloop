@@ -1,0 +1,41 @@
+USE traveloop;
+
+-- Get user IDs (assuming auto-increment starts at 1)
+-- Trips for multiple users with realistic data
+
+INSERT INTO trips (user_id,name,description,start_date,end_date,cover_photo,is_public,source_place,destination_place,created_at) VALUES
+(1,'Goa Beach Vacation','Sun sand and seafood','2025-02-10','2025-02-15','',1,'Mumbai','Goa','2025-02-01'),
+(1,'Rajasthan Heritage','Exploring royal forts','2025-05-01','2025-05-08','',1,'Mumbai','Jaipur','2025-04-20'),
+(2,'Kerala Backwaters','Houseboat experience','2025-03-15','2025-03-20','',1,'Ahmedabad','Kochi','2025-03-01'),
+(2,'Himachal Adventure','Mountain trekking','2025-07-10','2025-07-17','',1,'Ahmedabad','Manali','2025-06-25'),
+(3,'Europe Backpacking','15 days across Europe','2025-06-01','2025-06-15','',1,'Delhi','Paris','2025-05-15'),
+(3,'Thailand Trip','Bangkok and islands','2025-09-10','2025-09-18','',1,'Delhi','Bangkok','2025-08-20'),
+(4,'Bali Retreat','Wellness and temples','2025-04-20','2025-04-27','',1,'Bangalore','Bali','2025-04-05'),
+(5,'Ladakh Road Trip','Highest motorable roads','2025-06-15','2025-06-25','',1,'Pune','Leh','2025-06-01'),
+(5,'Sri Lanka Circuit','Cultural triangle','2025-10-05','2025-10-12','',1,'Pune','Colombo','2025-09-20'),
+(6,'Japan Cherry Blossom','Spring in Japan','2025-03-25','2025-04-05','',1,'New York','Tokyo','2025-03-10'),
+(6,'Italy Food Tour','Pasta pizza gelato','2025-08-01','2025-08-10','',1,'New York','Rome','2025-07-15'),
+(7,'Scottish Highlands','Castles and whisky','2025-05-10','2025-05-16','',1,'London','Edinburgh','2025-04-25'),
+(8,'Vietnam Explorer','Hanoi to Ho Chi Minh','2025-06-20','2025-06-30','',1,'Tokyo','Hanoi','2025-06-05'),
+(9,'Morocco Adventure','Desert and medinas','2025-07-05','2025-07-12','',1,'Barcelona','Marrakech','2025-06-20'),
+(10,'Maldives Getaway','Island paradise','2025-08-15','2025-08-20','',1,'Singapore','Male','2025-08-01'),
+(11,'Nepal Trek','Annapurna base camp','2025-09-01','2025-09-12','',1,'Hyderabad','Kathmandu','2025-08-15'),
+(12,'Golden Triangle','Delhi Agra Jaipur','2025-04-10','2025-04-16','',1,'Chennai','Delhi','2025-03-28'),
+(13,'Route 66 Drive','Classic American road trip','2025-07-01','2025-07-14','',1,'Chicago','Los Angeles','2025-06-15'),
+(14,'Greek Islands','Santorini and Mykonos','2025-06-10','2025-06-18','',1,'Paris','Athens','2025-05-25'),
+(15,'Desert Safari','Thar desert experience','2025-11-01','2025-11-06','',1,'Jaipur','Jaisalmer','2025-10-15'),
+(16,'Turkey Delight','Istanbul and Cappadocia','2025-10-10','2025-10-18','',1,'Dubai','Istanbul','2025-09-25'),
+(17,'New Zealand Adventure','South Island tour','2025-12-01','2025-12-12','',1,'Sydney','Queenstown','2025-11-15'),
+(18,'Meghalaya Explore','Living root bridges','2025-11-10','2025-11-16','',1,'Kochi','Shillong','2025-10-25'),
+(19,'Taiwan Circuit','Taipei to Kaohsiung','2026-01-05','2026-01-12','',1,'Seoul','Taipei','2025-12-20'),
+(20,'Varanasi Spiritual','Ghats and temples','2026-01-15','2026-01-19','',1,'Lucknow','Varanasi','2026-01-05'),
+(21,'Amalfi Coast','Italian coastline drive','2026-02-01','2026-02-08','',1,'Rome','Amalfi','2026-01-15'),
+(22,'Kutch Festival','Rann Utsav experience','2026-02-15','2026-02-20','',1,'Surat','Bhuj','2026-02-01'),
+(23,'Macau Weekend','Casino and heritage','2026-03-01','2026-03-04','',1,'Hong Kong','Macau','2026-02-20'),
+(24,'Darjeeling Hills','Tea gardens and trains','2026-03-20','2026-03-26','',1,'Kolkata','Darjeeling','2026-03-10'),
+(25,'Banff National Park','Canadian Rockies','2026-04-10','2026-04-18','',1,'Vancouver','Banff','2026-03-25'),
+(1,'Kashmir Paradise','Dal Lake houseboat','2026-01-20','2026-01-27','',1,'Mumbai','Srinagar','2026-01-10'),
+(3,'Vietnam North','Sapa and Ha Long Bay','2026-02-05','2026-02-12','',1,'Delhi','Hanoi','2026-01-20'),
+(6,'Peru Machu Picchu','Inca trail adventure','2026-03-01','2026-03-10','',1,'New York','Cusco','2026-02-15'),
+(4,'Andaman Islands','Beach and scuba diving','2025-08-05','2025-08-12','',1,'Bangalore','Port Blair','2025-07-20'),
+(9,'Portugal Explorer','Lisbon and Porto','2025-10-15','2025-10-22','',1,'Barcelona','Lisbon','2025-10-01');

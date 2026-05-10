@@ -13,6 +13,7 @@ import Explore from './pages/Explore';
 import ItineraryView from './pages/ItineraryView';
 import Community from './pages/Community';
 import AdminPanel from './pages/AdminPanel';
+import AdminLogin from './pages/AdminLogin';
 import TripNotes from './pages/TripNotes';
 import PackingChecklist from './pages/PackingChecklist';
 import PublicItinerary from './pages/PublicItinerary';

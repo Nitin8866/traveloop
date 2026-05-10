@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
-import { Home, Map, Compass, User, LogOut, Plane, Search, Bell, Settings } from 'lucide-react';
+import { Home, Map, Compass, User, LogOut, Plane, Search, Bell } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Layout = ({ children }) => {
@@ -13,15 +13,10 @@ const Layout = ({ children }) => {
     };
 
     const navItems = [
-        { icon: <Home size={20} />, label: 'Dashboard', path: user?.role === 'admin' ? '/admin' : '/' },
+        { icon: <Home size={20} />, label: 'Dashboard', path: '/' },
         { icon: <Map size={20} />, label: 'My Trips', path: '/my-trips' },
         { icon: <Compass size={20} />, label: 'Explore', path: '/explore' },
     ];
-
-    // Add Admin Panel only if user is an admin
-    if (user?.role === 'admin') {
-        navItems.push({ icon: <Settings size={20} />, label: 'Admin Panel', path: '/admin' });
-    }
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
