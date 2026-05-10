@@ -16,8 +16,12 @@ const Layout = ({ children }) => {
         { icon: <Home size={20} />, label: 'Dashboard', path: '/' },
         { icon: <Map size={20} />, label: 'My Trips', path: '/my-trips' },
         { icon: <Compass size={20} />, label: 'Explore', path: '/explore' },
-        { icon: <Settings size={20} />, label: 'Admin Panel', path: '/admin' },
     ];
+
+    // Add Admin Panel only if user is an admin
+    if (user?.role === 'admin') {
+        navItems.push({ icon: <Settings size={20} />, label: 'Admin Panel', path: '/admin' });
+    }
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>

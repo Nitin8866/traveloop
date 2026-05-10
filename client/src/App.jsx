@@ -35,7 +35,7 @@ function App() {
             <Route path="/explore" element={<Explore />} />
             <Route path="/itinerary-view/:tripId" element={<ItineraryView />} />
             <Route path="/community" element={<Community />} />
-            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/admin/*" element={<AdminPanel />} />
             <Route path="/notes" element={<TripNotes />} />
           </Routes>
         </div>
