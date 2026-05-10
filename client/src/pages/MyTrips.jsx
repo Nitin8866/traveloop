@@ -17,13 +17,27 @@ const MyTrips = () => {
         } catch (err) { setLoading(false); }
     };
 
-    useEffect(() => { fetchTrips(); }, []);
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this journey? All planned stops will be lost.')) return;
+        
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`/api/trips/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            // Remove from local state to update UI immediately
+            setTrips(trips.filter(t => t.id !== id));
+        } catch (err) {
+            console.error('Error deleting trip:', err);
+            alert('Failed to delete trip.');
+        }
+    };
 
     const categories = [
         { title: 'Ongoing', icon: <Clock size={20} color="var(--primary)" />, filter: 'ongoing' },
         { title: 'Up-coming', icon: <Calendar size={20} color="var(--warning)" />, filter: 'upcoming' },
         { title: 'Completed', icon: <CheckCircle2 size={20} color="var(--accent)" />, filter: 'completed' },
     ];
+
+    useEffect(() => { fetchTrips(); }, []);
 
     return (
         <Layout>
@@ -63,7 +77,12 @@ const MyTrips = () => {
                                         </div>
                                         <div style={{ display: 'flex', gap: '10px' }}>
                                             <Link to={`/itinerary/${trip.id}`} className="btn-primary" style={{ padding: '10px 25px' }}>View</Link>
-                                            <button style={{ padding: '10px', borderRadius: '12px', border: '1px solid #eee', color: 'var(--error)', background: '#FEF2F2' }}><Trash2 size={20} /></button>
+                                            <button 
+                                                onClick={() => handleDelete(trip.id)}
+                                                style={{ padding: '10px', borderRadius: '12px', border: '1px solid #eee', color: 'var(--error)', background: '#FEF2F2', cursor: 'pointer' }}
+                                            >
+                                                <Trash2 size={20} />
+                                            </button>
                                         </div>
                                     </div>
                                 ))
