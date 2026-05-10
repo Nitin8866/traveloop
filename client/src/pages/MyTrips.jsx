@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 const MyTrips = () => {
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [tripToDelete, setTripToDelete] = useState(null); // State for custom confirm modal
 
     const fetchTrips = async () => {
         try {
@@ -17,16 +18,18 @@ const MyTrips = () => {
         } catch (err) { setLoading(false); }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this journey? All planned stops will be lost.')) return;
+    const confirmDelete = async () => {
+        if (!tripToDelete) return;
         
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`/api/trips/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-            setTrips(trips.filter(t => t.id !== id));
+            await axios.delete(`/api/trips/${tripToDelete}`, { headers: { Authorization: `Bearer ${token}` } });
+            setTrips(trips.filter(t => t.id !== tripToDelete));
+            setTripToDelete(null);
         } catch (err) {
             console.error('Error deleting trip:', err);
             alert('Failed to delete trip.');
+            setTripToDelete(null);
         }
     };
 
@@ -103,7 +106,12 @@ const MyTrips = () => {
                                                     <Eye size={16} /> View
                                                 </Link>
                                                 <button 
-                                                    onClick={() => handleDelete(trip.id)}
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setTripToDelete(trip.id);
+                                                    }}
                                                     style={{ padding: '10px', borderRadius: '12px', border: '1px solid #eee', color: 'var(--error)', background: '#FEF2F2', cursor: 'pointer' }}
                                                 >
                                                     <Trash2 size={20} />
@@ -118,6 +126,47 @@ const MyTrips = () => {
                         </section>
                     );
                 })}
+
+                {/* Custom Confirmation Modal */}
+                {tripToDelete && (
+                    <div style={{
+                        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+                    }}>
+                        <div className="premium-card animate-scale-in" style={{
+                            background: 'white', padding: '3rem', maxWidth: '400px', width: '100%',
+                            textAlign: 'center', borderRadius: '24px'
+                        }}>
+                            <div style={{
+                                width: '60px', height: '60px', background: '#FEF2F2', color: 'var(--error)',
+                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                margin: '0 auto 1.5rem'
+                            }}>
+                                <Trash2 size={30} />
+                            </div>
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem' }}>Delete Journey?</h3>
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
+                                Are you absolutely sure? All planned stops, notes, and checklist items will be permanently lost.
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button 
+                                    className="btn-secondary" 
+                                    style={{ flex: 1, padding: '12px' }}
+                                    onClick={() => setTripToDelete(null)}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    className="btn-primary" 
+                                    style={{ flex: 1, padding: '12px', background: 'var(--error)', border: 'none' }}
+                                    onClick={confirmDelete}
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </Layout>
     );

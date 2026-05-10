@@ -40,15 +40,28 @@ const ItineraryBuilder = () => {
         setLoadingSuggestions(false);
     };
 
+    const [error, setError] = useState(null);
+
     const fetchData = async () => {
-        const token = localStorage.getItem('token');
-        const headers = { Authorization: `Bearer ${token}` };
-        const tripRes = await axios.get(`/api/trips`, { headers });
-        const currentTrip = tripRes.data.find(t => t.id === parseInt(tripId));
-        setTrip(currentTrip);
-        if (currentTrip) fetchDestinationGuide(currentTrip.destination_place);
-        const stopsRes = await axios.get(`/api/itinerary/stops/${tripId}`, { headers });
-        setStops(stopsRes.data);
+        try {
+            const token = localStorage.getItem('token');
+            const headers = { Authorization: `Bearer ${token}` };
+            
+            // Use specific endpoint instead of fetching all trips
+            const tripRes = await axios.get(`/api/trips/${tripId}`, { headers });
+            setTrip(tripRes.data);
+            
+            if (tripRes.data) {
+                fetchDestinationGuide(tripRes.data.destination_place);
+            }
+            
+            const stopsRes = await axios.get(`/api/itinerary/stops/${tripId}`, { headers });
+            setStops(stopsRes.data);
+        } catch (error) {
+            console.error("Failed to fetch trip data:", error);
+            setError(error.response?.data?.message || error.message || "Failed to load trip data");
+            setTrip(null); 
+        }
     };
 
     useEffect(() => { fetchData(); }, [tripId, targetCity]); // Reload if city in URL changes
@@ -85,6 +98,18 @@ const ItineraryBuilder = () => {
         }
         setIsFinalizing(false);
     };
+
+    if (error) {
+        return (
+            <Layout>
+                <div style={{ padding: '5rem', textAlign: 'center', color: 'red' }}>
+                    <h2>Error Loading Itinerary</h2>
+                    <p>{error}</p>
+                    <button onClick={() => navigate('/my-trips')} className="btn-primary" style={{ margin: '2rem auto' }}>Return to My Trips</button>
+                </div>
+            </Layout>
+        );
+    }
 
     if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}><Loader2 className="animate-spin" /> Syncing destination...</div></Layout>;
 

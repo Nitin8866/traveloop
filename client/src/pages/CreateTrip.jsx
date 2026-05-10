@@ -26,9 +26,22 @@ const CreateTrip = () => {
 
     useEffect(() => {
         const fetchTrips = async () => {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/trips', { headers: { Authorization: `Bearer ${token}` } });
-            setMyTrips(res.data);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await axios.get('/api/trips', { headers: { Authorization: `Bearer ${token}` } });
+                const fetchedTrips = res.data;
+                setMyTrips(fetchedTrips);
+                
+                // CRITICAL FIX: If localstorage has an ID but that trip was deleted, clear it.
+                if (formData.id && !fetchedTrips.find(t => t.id === formData.id)) {
+                    setFormData(prev => ({ ...prev, id: null, name: '' }));
+                    setIsExistingTrip(false);
+                } else if (formData.id) {
+                    setIsExistingTrip(true);
+                }
+            } catch (err) {
+                console.error("Failed to fetch trips", err);
+            }
         };
         fetchTrips();
         if (formData.destinationPlace) setDestinationSearch(formData.destinationPlace);
