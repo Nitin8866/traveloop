@@ -6,7 +6,9 @@ import {
     Plus, Calendar, MapPin, DollarSign, ArrowRight, Sparkles, 
     Trash2, CheckCircle2, Navigation, Compass, ShoppingCart, 
     X, AlertCircle, TrendingUp, IndianRupee, Loader2, Landmark,
-    Camera, Utensils, Building, Info, Globe
+    Camera, Utensils, Building, Info, Globe, Map as MapIcon,
+    History, Ship, BookOpen, ImageIcon, Eye, Star, ShieldCheck,
+    Square, CheckSquare, List, Map as MapLayout, ArrowLeft
 } from 'lucide-react';
 
 const ItineraryBuilder = () => {
@@ -19,86 +21,53 @@ const ItineraryBuilder = () => {
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-    const getRealBudgetINR = (item) => {
-        const rates = { 'museum': 800, 'monument': 1500, 'viewpoint': 500, 'hotel': 5000, 'theme_park': 2500, 'gallery': 1200 };
-        return rates[item.category] || 1500;
-    };
-
-    const fetchRealWorldLandmarks = async (source, dest) => {
+    const fetchDestinationGuide = async (destination) => {
         setLoadingSuggestions(true);
         try {
-            // 1. Get Coordinates for Source and Destination using Photon API
-            const sourceRes = await axios.get(`https://photon.komoot.io/api/?q=${source}&limit=1`);
-            const destRes = await axios.get(`https://photon.komoot.io/api/?q=${dest}&limit=1`);
-
-            if (sourceRes.data.features.length && destRes.data.features.length) {
-                const s = sourceRes.data.features[0].geometry.coordinates;
-                const d = destRes.data.features[0].geometry.coordinates;
-                
-                // 2. Define Bounding Box for Overpass API
-                const minLat = Math.min(s[1], d[1]) - 0.5;
-                const maxLat = Math.max(s[1], d[1]) + 0.5;
-                const minLon = Math.min(s[0], d[0]) - 0.5;
-                const maxLon = Math.max(s[0], d[0]) + 0.5;
-
-                // 3. Fetch Famous Landmarks from Overpass API (Real-time Global Data)
-                const overpassQuery = `[out:json][timeout:25];(node["tourism"~"museum|monument|attraction|viewpoint|theme_park"](${minLat},${minLon},${maxLat},${maxLon}););out body 8;`;
-                const overpassRes = await axios.get(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`);
-                
-                const realLandmarks = overpassRes.data.elements.map(el => ({
-                    name: el.tags.name || 'Famous Landmark',
-                    category: el.tags.tourism || 'attraction',
-                    desc: `A highly rated ${el.tags.tourism || 'spot'} located in this region.`,
-                    img: `https://images.unsplash.com/photo-1548013146-72479768b0dd?auto=format&fit=crop&q=80&w=1000`, // Using a standard high-quality base
-                    location: `${el.lat.toFixed(2)}, ${el.lon.toFixed(2)}`
-                })).filter(l => l.name !== 'Famous Landmark');
-
-                setSuggestions(realLandmarks);
+            const destRes = await axios.get(`https://photon.komoot.io/api/?q=${destination}&limit=1`);
+            if (destRes.data.features.length) {
+                const [lon, lat] = destRes.data.features[0].geometry.coordinates;
+                const res = await axios.get(`/api/google/nearby-attractions?lat=${lat}&lon=${lon}`);
+                const curated = res.data.filter(place => 
+                    !place.name.includes('Limited') && 
+                    !place.name.includes('Industries') && 
+                    !place.name.includes('Fiber') &&
+                    !place.name.includes('Society')
+                );
+                setSuggestions(curated);
             }
-        } catch (err) { console.error("Dynamic Fetch Error:", err); }
+        } catch (err) { console.error("Discovery Error:", err); }
         setLoadingSuggestions(false);
     };
 
     const fetchData = async () => {
         const token = localStorage.getItem('token');
         const headers = { Authorization: `Bearer ${token}` };
-        try {
-            const tripRes = await axios.get(`/api/trips`, { headers });
-            const currentTrip = tripRes.data.find(t => t.id === parseInt(tripId));
-            setTrip(currentTrip);
-
-            if (currentTrip) {
-                fetchRealWorldLandmarks(currentTrip.source_place, currentTrip.destination_place);
-            }
-
-            const stopsRes = await axios.get(`/api/itinerary/stops/${tripId}`, { headers });
-            setStops(stopsRes.data);
-        } catch (err) { console.error("Data Fetch Error:", err); }
+        const tripRes = await axios.get(`/api/trips`, { headers });
+        const currentTrip = tripRes.data.find(t => t.id === parseInt(tripId));
+        setTrip(currentTrip);
+        if (currentTrip) fetchDestinationGuide(currentTrip.destination_place);
+        const stopsRes = await axios.get(`/api/itinerary/stops/${tripId}`, { headers });
+        setStops(stopsRes.data);
     };
 
     useEffect(() => { fetchData(); }, [tripId]);
 
-    const addToCart = (place) => {
-        if (!cart.find(item => item.name === place.name)) {
+    const toggleSelection = (place) => {
+        if (cart.find(item => item.name === place.name)) {
+            setCart(cart.filter(item => item.name !== place.name));
+        } else {
             setCart([...cart, place]);
         }
-    };
-
-    const removeFromCart = (name) => {
-        setCart(cart.filter(item => item.name !== name));
     };
 
     const finalizeRoute = async () => {
         const token = localStorage.getItem('token');
         for (const item of cart) {
             await axios.post('/api/itinerary/stops', { 
-                cityName: item.name, 
-                country: 'India', 
-                arrivalDate: trip.start_date, 
-                departureDate: trip.end_date,
-                tripId, 
-                orderIndex: stops.length,
-                budget: getRealBudgetINR(item)
+                cityName: item.name, country: 'India', 
+                arrivalDate: trip.start_date, departureDate: trip.end_date,
+                tripId, orderIndex: stops.length, budget: 4500
             }, { headers: { Authorization: `Bearer ${token}` } });
         }
         setCart([]);
@@ -106,114 +75,141 @@ const ItineraryBuilder = () => {
         fetchData();
     };
 
-    if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}><Loader2 className="animate-spin" /> Analyzing route...</div></Layout>;
+    if (!trip) return <Layout><div style={{ padding: '5rem', textAlign: 'center' }}><Loader2 className="animate-spin" /> Analyzing your destination...</div></Layout>;
 
     return (
         <Layout>
             <div className="animate-fade-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem' }}>
-                    <div>
-                        <h1 style={{ fontSize: '2.8rem', fontWeight: 900, letterSpacing: '-1.5px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <Globe size={40} color="var(--primary)" /> Real-Time Route Planner
-                        </h1>
-                        <p style={{ color: 'var(--text-muted)' }}>Live Data between <strong>{trip.source_place.split(',')[0]}</strong> and <strong>{trip.destination_place.split(',')[0]}</strong></p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <div style={{ position: 'relative' }}>
-                            <button className="btn-primary" style={{ background: cart.length > 0 ? 'var(--primary-gradient)' : '#eee', color: cart.length > 0 ? 'white' : '#9CA3AF', borderRadius: '16px' }} onClick={() => cart.length > 0 && setShowConfirmModal(true)}>
-                                <ShoppingCart size={20} /> My Route Cart ({cart.length})
-                            </button>
-                            {cart.length > 0 && <span className="animate-pulse" style={{ position: 'absolute', top: '-5px', right: '-5px', width: '12px', height: '12px', background: 'var(--accent)', borderRadius: '50%', border: '2px solid white' }}></span>}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+                        <button onClick={() => navigate('/create-trip')} style={{ width: '60px', height: '60px', borderRadius: '18px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+                            <ArrowLeft size={28} />
+                        </button>
+                        <div>
+                            <h1 style={{ fontSize: '3.5rem', fontWeight: 950, letterSpacing: '-3px', marginBottom: '0.5rem', color: '#0F172A' }}>Explore {trip.destination_place.split(',')[0]}</h1>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontWeight: 600 }}>Curating the best highlights for your journey.</p>
                         </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1.5rem' }}>
+                        <button className="btn-secondary" style={{ padding: '1.2rem 2rem', borderRadius: '18px' }} onClick={() => navigate('/create-trip')}>
+                            <Plus size={20} /> New Destination
+                        </button>
+                        <button className="btn-primary" style={{ padding: '1.2rem 2.8rem', borderRadius: '22px', fontSize: '1.1rem' }} onClick={() => cart.length > 0 && setShowConfirmModal(true)}>
+                            <ShoppingCart size={22} /> Review Selected ({cart.length})
+                        </button>
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '4rem' }}>
-                    {/* Left Column: Live Landmarks */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '6rem' }}>
                     <section>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <Sparkles size={24} color="var(--primary)" /> Live Famous Suggestions
-                        </h3>
-                        
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem' }}>
+                            <h3 style={{ fontSize: '1.4rem', fontWeight: 900 }}>Visiting Places Suggestions</h3>
+                            <div style={{ display: 'flex', gap: '10px', background: '#F1F5F9', padding: '6px', borderRadius: '12px' }}>
+                                <button style={{ padding: '8px 15px', borderRadius: '8px', background: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.9rem' }}><List size={16} /> List View</button>
+                            </div>
+                        </div>
+
                         {loadingSuggestions ? (
-                            <div style={{ textAlign: 'center', padding: '4rem' }}>
-                                <Loader2 size={40} className="animate-spin" style={{ color: 'var(--primary)', marginBottom: '1rem' }} />
-                                <p style={{ fontWeight: 700, color: 'var(--text-muted)' }}>Scanning Route for Landmarks...</p>
+                            <div style={{ padding: '8rem', textAlign: 'center', background: '#F8FAFC', borderRadius: '40px', border: '2px dashed #E2E8F0' }}>
+                                <Loader2 size={50} className="animate-spin" color="var(--primary)" style={{ marginBottom: '2rem' }} />
+                                <h3 style={{ fontSize: '1.6rem', fontWeight: 900 }}>Fetching Data...</h3>
                             </div>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 {suggestions.map((place, i) => (
-                                    <div key={i} className="premium-card animate-fade-in" style={{ padding: 0, overflow: 'hidden', border: '1px solid #F3F4F6' }}>
-                                        <div style={{ height: '220px', position: 'relative' }}>
-                                            <img src={place.img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={place.name} />
-                                            <div style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(255,255,255,0.95)', padding: '6px 14px', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase' }}>
-                                                {place.category.replace('_', ' ')}
-                                            </div>
+                                    <div 
+                                        key={i} 
+                                        className="premium-card animate-fade-in" 
+                                        style={{ 
+                                            padding: '1.5rem', 
+                                            background: 'white', 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '2.5rem', 
+                                            cursor: 'pointer',
+                                            border: cart.find(item => item.name === place.name) ? '2.3px solid var(--primary)' : '1px solid #F1F5F9',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onClick={() => toggleSelection(place)}
+                                    >
+                                        <div style={{ color: cart.find(item => item.name === place.name) ? 'var(--primary)' : '#CBD5E1' }}>
+                                            {cart.find(item => item.name === place.name) ? <CheckSquare size={34} /> : <Square size={34} />}
                                         </div>
-                                        <div style={{ padding: '1.8rem' }}>
-                                            <h4 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.8rem' }}>{place.name}</h4>
-                                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.8rem', lineHeight: 1.6 }}>{place.desc}</p>
-                                            <button 
-                                                className="btn-primary" 
-                                                style={{ width: '100%', borderRadius: '12px', background: cart.find(item => item.name === place.name) ? '#F0FDF4' : 'var(--primary-gradient)', color: cart.find(item => item.name === place.name) ? '#166534' : 'white' }}
-                                                onClick={() => addToCart(place)}
-                                            >
-                                                {cart.find(item => item.name === place.name) ? <><CheckCircle2 size={18} /> In Cart</> : <><Plus size={18} /> Add to Route</>}
-                                            </button>
+                                        <div style={{ width: '130px', height: '130px', borderRadius: '20px', overflow: 'hidden', flexShrink: 0 }}>
+                                            <img src={place.photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={place.name} onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1548013146-72479768b0dd?auto=format&fit=crop&q=80&w=400' }} />
+                                        </div>
+                                        <div style={{ flexGrow: 1 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                                                <h4 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1E293B' }}>{place.name}</h4>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 900, background: '#F1F5F9', padding: '4px 10px', borderRadius: '50px', color: '#64748B', textTransform: 'uppercase' }}>{place.types[0].replace('_', ' ')}</span>
+                                            </div>
+                                            <p style={{ color: '#64748B', fontSize: '0.95rem', fontWeight: 600 }}>{place.address}</p>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', color: '#F59E0B', fontWeight: 900, fontSize: '0.9rem' }}>
+                                                <Star size={16} fill="#F59E0B" /> {place.rating || 'New'}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
-                                {suggestions.length === 0 && <p style={{ gridColumn: 'span 2', textAlign: 'center', color: '#9CA3AF' }}>No famous landmarks found on this specific route yet.</p>}
                             </div>
                         )}
                     </section>
 
-                    {/* Right Column: Active Journey */}
                     <aside>
-                        <div className="premium-card" style={{ padding: '2rem', marginBottom: '2rem', border: '1px solid #F3F4F6' }}>
-                            <h4 style={{ marginBottom: '1.8rem', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.1rem' }}><Navigation size={20} color="var(--primary)" /> Finalized Route</h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                        <div className="premium-card" style={{ padding: '2.5rem', background: 'white', position: 'sticky', top: '2rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '2.5rem' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#F0F9FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <MapLayout size={20} color="var(--primary)" />
+                                </div>
+                                <h3 style={{ fontSize: '1.3rem', fontWeight: 900 }}>Route Timeline</h3>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
                                 {stops.map((stop, i) => (
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '12px', background: '#F9FAFB', borderRadius: '14px' }}>
-                                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--primary)' }}></div>
-                                        <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>{stop.city_name}</span>
+                                    <div key={i} style={{ position: 'relative', paddingLeft: '45px' }}>
+                                        <div style={{ position: 'absolute', left: '0', top: '5px', width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary)', border: '6px solid white', boxShadow: '0 0 0 4px #F1F5F9' }}></div>
+                                        <p style={{ fontWeight: 900, color: '#1E293B' }}>{stop.city_name}</p>
+                                        <p style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 700 }}>Confirmed</p>
                                     </div>
                                 ))}
+                                {stops.length === 0 && <p style={{ color: '#94A3B8', fontSize: '0.9rem', fontWeight: 700 }}>Select places to visit.</p>}
                             </div>
+
+                            {stops.length > 0 && (
+                                <button className="btn-secondary" style={{ width: '100%', marginTop: '4rem', padding: '1.2rem', borderRadius: '16px' }} onClick={() => navigate('/create-trip')}>
+                                    <Plus size={20} /> Add Another Destination
+                                </button>
+                            )}
                         </div>
                     </aside>
                 </div>
 
-                {/* Finalize Journey Modal */}
                 {showConfirmModal && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
-                        <div className="premium-card animate-scale-in" style={{ width: '650px', padding: '3.5rem' }}>
-                            <h2 style={{ fontWeight: 900, fontSize: '1.8rem', marginBottom: '2rem' }}>Confirm Live Selections</h2>
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.8)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(20px)' }}>
+                        <div className="premium-card animate-scale-in" style={{ width: '750px', padding: '4rem', background: 'white' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+                                <h2 style={{ fontSize: '2.2rem', fontWeight: 950 }}>Confirm Selections</h2>
+                                <button onClick={() => setShowConfirmModal(false)} style={{ color: '#94A3B8' }}><X size={32} /></button>
+                            </div>
                             
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '3rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.8rem', marginBottom: '4rem', maxHeight: '400px', overflowY: 'auto' }}>
                                 {cart.map((item, i) => (
-                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', background: '#F9FAFB', borderRadius: '20px' }}>
-                                        <div>
-                                            <p style={{ fontWeight: 800 }}>{item.name}</p>
-                                            <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 800 }}>₹ {getRealBudgetINR(item).toLocaleString('en-IN')} Est.</p>
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', padding: '1.2rem', borderRadius: '20px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                            <div style={{ width: '64px', height: '64px', borderRadius: '14px', overflow: 'hidden' }}><img src={item.photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
+                                            <p style={{ fontWeight: 900, fontSize: '1.1rem' }}>{item.name}</p>
                                         </div>
-                                        <button onClick={() => removeFromCart(item.name)} style={{ color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                                        <button onClick={() => toggleSelection(item)} style={{ color: '#EF4444' }}><Trash2 size={24} /></button>
                                     </div>
                                 ))}
                             </div>
 
-                            <button className="btn-primary" style={{ width: '100%', padding: '1.3rem', fontSize: '1.1rem' }} onClick={finalizeRoute}>
-                                Finalize Itinerary <ArrowRight size={20} />
+                            <button className="btn-primary" style={{ width: '100%', padding: '1.6rem', fontSize: '1.2rem', borderRadius: '24px' }} onClick={finalizeRoute}>
+                                Confirm & Add to Trip <ArrowRight />
                             </button>
                         </div>
                     </div>
                 )}
             </div>
-            
-            <style>{`
-                .animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-                @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-            `}</style>
         </Layout>
     );
 };
