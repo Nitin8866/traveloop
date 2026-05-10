@@ -27,7 +27,6 @@ const CreateTrip = () => {
 
     useEffect(() => {
         const fetchTrips = async () => {
-<<<<<<< HEAD
             try {
                 const token = localStorage.getItem('token');
                 const res = await axios.get('/api/trips', { headers: { Authorization: `Bearer ${token}` } });
@@ -41,23 +40,20 @@ const CreateTrip = () => {
                 } else if (formData.id) {
                     setIsExistingTrip(true);
                 }
+
+                // Prefill from query params
+                const queryParams = new URLSearchParams(location.search);
+                const prefilledTripId = queryParams.get('tripId');
+                if (prefilledTripId) {
+                    const selected = fetchedTrips.find(t => t.id === parseInt(prefilledTripId));
+                    if (selected) {
+                        setFormData(prev => ({...prev, id: selected.id, name: selected.name, startDate: selected.start_date?.split('T')[0], endDate: selected.end_date?.split('T')[0], destinationPlace: ''}));
+                        setDestinationSearch('');
+                        setIsExistingTrip(true);
+                    }
+                }
             } catch (err) {
                 console.error("Failed to fetch trips", err);
-=======
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/trips', { headers: { Authorization: `Bearer ${token}` } });
-            setMyTrips(res.data);
-            
-            const queryParams = new URLSearchParams(location.search);
-            const prefilledTripId = queryParams.get('tripId');
-            if (prefilledTripId) {
-                const selected = res.data.find(t => t.id === parseInt(prefilledTripId));
-                if (selected) {
-                    setFormData(prev => ({...prev, id: selected.id, name: selected.name, startDate: selected.start_date?.split('T')[0], endDate: selected.end_date?.split('T')[0], destinationPlace: ''}));
-                    setDestinationSearch('');
-                    setIsExistingTrip(true);
-                }
->>>>>>> 637b1e3 (fixes in admin)
             }
         };
         fetchTrips();
