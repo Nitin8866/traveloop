@@ -2,11 +2,11 @@ import db from '../config/db.js';
 
 // --- STOPS ---
 export const addStop = async (req, res) => {
-    const { tripId, cityName, country, arrivalDate, departureDate, orderIndex } = req.body;
+    const { tripId, cityName, country, arrivalDate, departureDate, orderIndex, budget } = req.body;
     try {
         const [result] = await db.execute(
-            'INSERT INTO stops (trip_id, city_name, country, arrival_date, departure_date, order_index) VALUES (?, ?, ?, ?, ?, ?)',
-            [tripId, cityName, country, arrivalDate, departureDate, orderIndex]
+            'INSERT INTO stops (trip_id, city_name, country, arrival_date, departure_date, budget, order_index) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [tripId, cityName, country, arrivalDate, departureDate, budget || 0, orderIndex || 0]
         );
         res.status(201).json({ id: result.insertId, cityName });
     } catch (error) {
