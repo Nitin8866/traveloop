@@ -120,4 +120,4 @@ Traveloop stands out by solving the "Planning Paralysis" often associated with m
 - **Shreyalsinh Raj** ([@Shreyal216](https://github.com/Shreyal216))
 
 ---
-Developed for [Hackathon Name] 🚀
+Developed for Odoo Hackathon 🚀
