@@ -33,8 +33,6 @@ CREATE TABLE IF NOT EXISTS trips (
     destination_place VARCHAR(255) DEFAULT '',
     budget DECIMAL(12, 2) DEFAULT 0.00,
     is_public BOOLEAN DEFAULT FALSE,
-    source_place VARCHAR(100) DEFAULT '',
-    destination_place VARCHAR(100) DEFAULT '',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -47,13 +45,8 @@ CREATE TABLE IF NOT EXISTS stops (
     country VARCHAR(100),
     arrival_date DATE,
     departure_date DATE,
-<<<<<<< HEAD
     budget DECIMAL(12, 2) DEFAULT 0.00,
     order_index INT NOT NULL DEFAULT 0,
-=======
-    budget DECIMAL(10, 2) DEFAULT 0.00,
-    order_index INT NOT NULL,
->>>>>>> 7f4836e (admin fix nd working)
     FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE
 );
 

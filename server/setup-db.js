@@ -33,6 +33,24 @@ const setup = async () => {
             else throw err;
         }
 
+        // Add bio column to users if missing
+        try {
+            await connection.execute("ALTER TABLE users ADD COLUMN bio TEXT");
+            console.log('✅ Added "bio" column to users table.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') console.log('ℹ️  "bio" column already exists in users.');
+            else throw err;
+        }
+
+        // Add photo column to users if missing
+        try {
+            await connection.execute("ALTER TABLE users ADD COLUMN photo VARCHAR(255)");
+            console.log('✅ Added "photo" column to users table.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') console.log('ℹ️  "photo" column already exists in users.');
+            else throw err;
+        }
+
         // 3. Add source_place to trips if missing
         try {
             await connection.execute("ALTER TABLE trips ADD COLUMN source_place VARCHAR(255) DEFAULT ''");
